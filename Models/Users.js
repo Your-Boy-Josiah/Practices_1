@@ -20,7 +20,7 @@ const userSchema =new mongose.Schema({
     },
     gender:{
         type: String,
-        enum:[ 'Male', 'Female', 'Gay', 'Lesbian', 'Bisexual', 'Transgender', 'Non-binary', 'Other'],
+        enum:[ 'Male', 'Female', 'Gay', 'Lesbian', 'Bisexual', 'Transgender', 'Non-binary', 'Other' ],
         required: [true, 'Please select your gender']
     },
     phone_number:{

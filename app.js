@@ -10,7 +10,7 @@ const connectDB = require('../Practices/Config/Database_Config');
 connectDB();
 
 const ProductRoute = require("../Practices/Routes/Product_Routes");
-
+const UserRoute = require('../Practices/Routes/User_Routes')
 
 //Middleware to parse JSON request bodies
 app.use(express.json());
@@ -19,6 +19,7 @@ app.use(express.json());
 // console.log('This is an Extra line')
 
 app.use('/Products', ProductRoute);
+app.use('/Users', UserRoute);
 
 // app.use('/User', require('./Routes/User_Route'));
 

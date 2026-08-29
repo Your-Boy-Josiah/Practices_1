@@ -10,5 +10,5 @@ router.post('/CreateProduct', ProductController.CreateProduct);
 
 router.put('/UpdateProduct/:id', ProductController.UpdateProduct);
 
-//export the router to be used in other files
+// Export the router to be used in other files
 module.exports = router;

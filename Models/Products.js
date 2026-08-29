@@ -24,7 +24,8 @@ const productSchema = new mongose.Schema({
 
     
 
-},{timestamps: true}  //Date of creation and update will be automatically added to the documentation.
+},
+{timestamps: true}  //Date of creation and update will be automatically added to the documentation.
 );
 
 //Create a model from Schema
