@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Environment variables & secrets (CRITICAL: never commit API keys or passwords)
+.env
+.env.local
+
+# Operating System & Editor metadata
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Build outputs & logs
+dist/
+build/
+*.log
+
