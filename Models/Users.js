@@ -1,5 +1,5 @@
 const PM = require('mongoose');
-const TFA = require('bcrypt'); // Brought in bcrypt to handle password security
+const TFA = require('bcryptjs'); // Brought in bcrypt to handle password security
 
 const UserSchema =new PM.Schema({
     name:{

@@ -7,7 +7,7 @@
 // ===============================================================
 
 const Product = require('../Models/Products');
-const mongoose = require('mongoose');
+const PM = require('mongoose');
 
 // ==============================================================
 // CREATE A NEW PRODUCT
@@ -38,7 +38,13 @@ exports.CreateProduct = async (req, res) => {
     // costPrice, sellingPrice, and quantity use strict undefined check
     // because 0 is a valid value and would fail a simple falsy check (!costPrice)
 
-    if ( !name || !barcode || !category || costPrice === undefined || sellingPrice === undefined || quantity === undefined ) {
+    if ( 
+      !name || 
+      !barcode || 
+      !category || 
+      costPrice === undefined || 
+      sellingPrice === undefined || 
+      quantity === undefined ) {
       return res.status(400).json({
         message:
           'Please provide all required fields: name, barcode, category, costPrice, sellingPrice, quantity',
@@ -109,7 +115,8 @@ exports.CreateProduct = async (req, res) => {
       return res.status(409).json({ message: `Duplicate value for ${field}` });
     }
 
-    // Error Handler B: Any other unexpected server error ---
+    // Error Handler B: Any other unexpected server error
+
     console.error('Error creating product:', error);
     return res.status(500).json({ message: 'Error creating product', error: error.message });
   }
@@ -244,7 +251,7 @@ exports.UpdateProduct = async (req, res) => {
     // Without this check, an invalid ID (e.g. "abc") causes a Mongoose CastError
     // which would surface as an unhandled 500. We return a clean 400 instead.
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
+    if (!PM.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: 'Invalid product ID' });
     }
 
@@ -306,7 +313,7 @@ exports.DeleteProduct = async (req, res) => {
     // Validate that the ID is a valid MongoDB ObjectID 
     // Prevents a Mongoose CastError from becoming an unhandled 500 error
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
+    if (!PM.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: 'Invalid product ID' });
     }
 

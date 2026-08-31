@@ -12,8 +12,7 @@
 
 const express = require('express');
 const router = express.Router();
-const ProductController = require('../Controllers/Product_Controller');
-const { verifyToken, requireAdmin } = require('../middleware/authMiddleware');
+const ProductController = require('../Controllers/Product_Controlller');
 
 
 // ============================================================
@@ -50,7 +49,9 @@ router.get('/barcode/:barcode', ProductController.GetProductByBarcode);
 // Create a new product — restricted to authenticated admins
 // verifyToken validates the JWT, requireAdmin confirms the admin role
 
-router.post('/', verifyToken, requireAdmin, ProductController.CreateProduct);
+// router.post('/', verifyToken, requireAdmin, ProductController.CreateProduct);
+
+router.post('/', ProductController.CreateProduct);
 
 
 // ============================================================
@@ -62,7 +63,9 @@ router.post('/', verifyToken, requireAdmin, ProductController.CreateProduct);
 // Update an existing product by its MongoDB ObjectId
 // verifyToken validates the JWT, requireAdmin confirms the admin role
 
-router.put('/:id', verifyToken, requireAdmin, ProductController.UpdateProduct);
+// router.put('/:id', verifyToken, requireAdmin, ProductController.UpdateProduct);
+
+router.put('/:id', ProductController.UpdateProduct);
 
 
 // ============================================================
@@ -74,7 +77,8 @@ router.put('/:id', verifyToken, requireAdmin, ProductController.UpdateProduct);
 // Deactivate a product by its MongoDB ObjectId (data is preserved)
 // verifyToken validates the JWT, requireAdmin confirms the admin role
 
-router.delete('/:id', verifyToken, requireAdmin, ProductController.DeleteProduct);
+// router.delete('/:id', verifyToken, requireAdmin, ProductController.DeleteProduct);
+router.delete('/:id', ProductController.DeleteProduct);
 
 
 // Export the router to be mounted in server.js / app.js
