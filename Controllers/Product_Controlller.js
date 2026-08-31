@@ -1,23 +1,23 @@
-// ============================================================
+// ===============================================================
 //  Product_Controller.js
 //  Handles all CRUD operations for the Product resource.
 //  Imported by Product_Routes.js and mounted under /api/products
 // Mongoose model for the Product collection
 // Mongoose core library — used here for ObjectId validation
-// ============================================================
+// ===============================================================
 
 const Product = require('../Models/Products');
 const mongoose = require('mongoose');
 
-// ============================================================
+// ==============================================================
 // CREATE A NEW PRODUCT
 // Route  : POST /api/products
 // Access : Admin only (protected by verifyToken + requireAdmin)
-// ============================================================
+// ==============================================================
 
 exports.CreateProduct = async (req, res) => {
   try {
-    // Step 1: Destructure all expected fields from the request body 
+    // Destructure all expected fields from the request body 
     const {
       name,
       barcode,
@@ -34,7 +34,7 @@ exports.CreateProduct = async (req, res) => {
       description,
     } = req.body;
 
-    // Step 2: Validate that all mandatory fields are present 
+    // Validate that all mandatory fields are present 
     // costPrice, sellingPrice, and quantity use strict undefined check
     // because 0 is a valid value and would fail a simple falsy check (!costPrice)
 
@@ -45,7 +45,7 @@ exports.CreateProduct = async (req, res) => {
       });
     }
 
-    // Step 3: Check if a product with the same barcode already exists 
+    // Check if a product with the same barcode already exists 
     // trim() removes accidental leading/trailing whitespace before comparison
 
     const existingBarcode = await Product.findOne({ barcode: barcode.trim() });
@@ -53,7 +53,7 @@ exports.CreateProduct = async (req, res) => {
       return res.status(409).json({ message: 'A product with this barcode already exists' });
     }
 
-    // Step 4: Check SKU uniqueness only if a SKU was provided 
+    // Check SKU uniqueness only if a SKU was provided 
     // SKU is optional, but if given it must be unique across all products
     // Stored in uppercase for consistent comparison
 
@@ -64,7 +64,7 @@ exports.CreateProduct = async (req, res) => {
       }
     }
 
-    // Step 5: Build the new Product document 
+    // Build the new Product document 
     // Each field is sanitised and cast to its correct type before saving:
     //   - Strings  → trimmed to remove whitespace
     //   - Numbers  → cast with Number() to avoid storing string values
@@ -89,7 +89,7 @@ exports.CreateProduct = async (req, res) => {
       isActive: true,                                   // New products are active by default
     });
 
-    // Step 6: Persist the new product document to MongoDB 
+    // Persist the new product document to MongoDB 
 
     const savedProduct = await product.save();
 
@@ -123,7 +123,7 @@ exports.CreateProduct = async (req, res) => {
 
 exports.GetProducts = async (req, res) => {
   try {
-    // Step 1: Parse and sanitise pagination parameters from the query string 
+    // Parse and sanitise pagination parameters from the query string 
     // Math.max ensures page is never less than 1
     // Math.min caps limit at 100 to prevent excessively large DB reads
 
@@ -134,7 +134,7 @@ exports.GetProducts = async (req, res) => {
 
     const skip = (page - 1) * limit;
 
-    // Step 2: Extract optional filter parameters from the query string 
+    // Extract optional filter parameters from the query string 
 
     const { search, category, lowStock } = req.query;
 
@@ -144,7 +144,7 @@ exports.GetProducts = async (req, res) => {
 
     const query = { isActive: true };
 
-    // Step 4: Add full-text style search filter if a search term was provided
+    // Add full-text style search filter if a search term was provided
     // $or checks name, barcode, and SKU fields using a case-insensitive regex
 
     if (search) {
@@ -155,13 +155,13 @@ exports.GetProducts = async (req, res) => {
       ];
     }
 
-    // Step 5: Add category filter if provided 
+    // Add category filter if provided 
 
     if (category) {
       query.category = category;
     }
 
-    // Step 6: Add low-stock filter if requested 
+    // Add low-stock filter if requested 
     // $expr allows comparison between two fields in the same document
     // Matches products where quantity <= reorderLevel
 
@@ -169,16 +169,16 @@ exports.GetProducts = async (req, res) => {
       query.$expr = { $lte: ['$quantity', '$reorderLevel'] };
     }
 
-    // Step 7: Execute both DB queries simultaneously using Promise.all 
+    // Execute both DB queries simultaneously using Promise.all 
     // Running them in parallel is faster than awaiting them one after the other.
-    // .lean() returns plain JS objects instead of full Mongoose documents (faster reads)
 
     const [products, totalProducts] = await Promise.all([
-      Product.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      Product.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
       Product.countDocuments(query), // Total count used to calculate pagination metadata
     ]);
 
-    // Step 8: Return the products along with pagination metadata 
+    // Return the products along with pagination metadata 
+
     return res.status(200).json({
       success: true,
       data: products,
@@ -205,21 +205,21 @@ exports.GetProducts = async (req, res) => {
 
 exports.GetProductByBarcode = async (req, res) => {
   try {
-    // Step 1: Extract the barcode value from the URL parameter 
+    // Extract the barcode value from the URL parameter 
     const { barcode } = req.params;
 
-    // Step 2: Query the DB for an active product matching this barcode 
+    // Query the DB for an active product matching this barcode 
     // isActive: true ensures archived products are not returned to the POS
     // trim() handles any accidental whitespace that may come from a scanner
 
     const product = await Product.findOne({ barcode: barcode.trim(), isActive: true });
 
-    // Step 3: Return 404 if no matching active product is found 
+    // Return 404 if no matching active product is found 
     if (!product) {
       return res.status(404).json({ message: 'Product not found with this barcode' });
     }
 
-    // Step 4: Return the matched product
+    // Return the matched product
     return res.status(200).json({ product });
 
   } catch (error) {
@@ -237,10 +237,10 @@ exports.GetProductByBarcode = async (req, res) => {
 
 exports.UpdateProduct = async (req, res) => {
   try {
-    // Step 1: Extract the product ID from the URL parameter 
+    // Extract the product ID from the URL parameter 
     const { id } = req.params;
 
-    // Step 2: Validate that the ID is a valid MongoDB ObjectId 
+    // Validate that the ID is a valid MongoDB ObjectId 
     // Without this check, an invalid ID (e.g. "abc") causes a Mongoose CastError
     // which would surface as an unhandled 500. We return a clean 400 instead.
 
@@ -248,7 +248,7 @@ exports.UpdateProduct = async (req, res) => {
       return res.status(400).json({ message: 'Invalid product ID' });
     }
 
-    // Step 3: Copy the request body to avoid mutating the original object
+    // Copy the request body to avoid mutating the original object
     // Then normalise any unique key fields before saving to keep DB data consistent
     const updateData = { ...req.body };
 
@@ -258,7 +258,7 @@ exports.UpdateProduct = async (req, res) => {
     // Trim whitespace from barcode if it is being updated
     if (updateData.barcode) updateData.barcode = updateData.barcode.trim();
 
-    // Step 4: Find the product by ID and apply the update
+    // Find the product by ID and apply the update
     // new: true → returns the updated document instead of the old one
     // runValidators: true → enforces schema-level validation rules on the update
 
@@ -267,12 +267,12 @@ exports.UpdateProduct = async (req, res) => {
       runValidators: true,
     });
 
-    // Step 5: Return 404 if no product was found with the given ID 
+    // Return 404 if no product was found with the given ID 
     if (!updatedProduct) {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    // Step 6: Return the updated product document
+    // Return the updated product document
     return res.status(200).json({
       message: 'Product updated successfully',
       product: updatedProduct,
@@ -300,17 +300,17 @@ exports.UpdateProduct = async (req, res) => {
 
 exports.DeleteProduct = async (req, res) => {
   try {
-    // Step 1: Extract the product ID from the URL parameter 
+    // Extract the product ID from the URL parameter 
     const { id } = req.params;
 
-    // Step 2: Validate that the ID is a valid MongoDB ObjectID 
+    // Validate that the ID is a valid MongoDB ObjectID 
     // Prevents a Mongoose CastError from becoming an unhandled 500 error
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: 'Invalid product ID' });
     }
 
-    // Step 3: Set isActive to false instead of deleting the document
+    // Set isActive to false instead of deleting the document
     // This is a soft delete the product record is preserved in the DB
     // for historical reference (e.g. past sales records, audit trails)
     // new: true → confirms the update was applied by returning the updated doc
@@ -321,12 +321,12 @@ exports.DeleteProduct = async (req, res) => {
       { new: true }
     );
 
-    //Step 4: Return 404 if no product was found with the given ID 
+    //Return 404 if no product was found with the given ID 
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    // Step 5: Confirm the product has been archived 
+    // Confirm the product has been archived 
     return res.status(200).json({ message: 'Product archived/deactivated successfully' });
 
   } catch (error) {

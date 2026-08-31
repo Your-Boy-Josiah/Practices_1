@@ -29,6 +29,15 @@ I wrote `Product_Routes.js` to wire up all the controller functions to their cor
 
 One important detail I learned: the `/barcode/:barcode` route **must be declared before** the `/:id` route, otherwise Express would incorrectly treat the word `barcode` as a dynamic ID parameter and route requests to the wrong handler.
 
+## New Commit: Doing another ReBuild of all my files and add Auth & Custom Features
+Today, I fully Rewired my the backend architecture. I loved the idea of creating custom features and aliases, like doing `const PM = require('mongoose')` and `const TFA = require('bcrypt')` just to personalize the code and make it my own. 
+
+Other things I did in this commit:
+- Added a `pre('save')` hook to `User.js` to hash passwords automatically so the controller stays clean.
+- Fixed the Mongoose virtuals in `Product.js` by adding `toJSON: { virtuals: true }` so the frontend can actually see the math.
+- Rewrote the User Controller to generate JWT tokens and properly handle MongoDB duplicate key errors (11000).
+- Created `Middleware` to act as a bouncer for protected routes, but just a folder for now
+- Built a clean `Database_Config.js` and wired everything together in my main `app.js` file.
 
 ## 🚀 Progress & Milestones
 
@@ -48,7 +57,6 @@ One important detail I learned: the `/barcode/:barcode` route **must be declared
 
 ## 🏗️ Project Structure
 
-```
 ├── Controllers/
 │   ├── User_Controller.js        # Handles user registration and login
 │   └── Product_Controller.js     # Handles all product CRUD operations
@@ -67,7 +75,7 @@ One important detail I learned: the `/barcode/:barcode` route **must be declared
 ├── .gitignore
 ├── .env                          # Environment variables (never committed)
 └── server.js                     # Entry point — Express app setup
-```
+
 
 ---
 
@@ -84,13 +92,19 @@ One important detail I learned: the `/barcode/:barcode` route **must be declared
 | DELETE | `/api/products/:id` | Admin only | Soft delete (deactivate) a product |
 
 **Available query params for GET `/api/products`:**
-```
 ?page=1          → Page number (default: 1)
 ?limit=20        → Results per page (default: 20, max: 100)
 ?search=milk     → Search by name, barcode, or SKU
 ?category=dairy  → Filter by category
 ?lowStock=true   → Return only products at or below their reorder level
-```
+
+
+### Users — `/Users` For Postman
+
+| Method | Endpoint | Access | Description |
+|--------|----------|--------|-------------|
+| POST | `/Users/CreateUser` | Public | Register a new user |
+| POST | `/Users/LoginUser` | Public | Login and receive a JWT wristband |
 
 ## 🛠️ Key Commands & Workflow Reference
 
@@ -127,3 +141,9 @@ npm run dev
 - The `/barcode/:barcode` route must always be declared before `/:id` in any Express router.
 - Use `=== undefined` not `!value` when validating numeric fields — zero is a valid quantity.
 - Soft deletes (`isActive: false`) are safer than hard deletes for inventory systems — past sales records depend on the product data still being there.
+- You can create custom features/aliases like `const PM = require('mongoose')` to personalize the code.
+- Never put password hashing in the controller if you use a `pre('save')` hook in the model (avoids the double-hash bug).
+- Mongoose hides virtual fields by default. Always add `toJSON: { virtuals: true }` to the schema to see them in API responses.
+- Using `.lean()` in queries strips away Mongoose virtuals, so remove it if you need calculations to show up.
+- Login routes should always be `POST`, never `PUT`.
+- If the database fails to connect in the config, use `process.exit(1)` to kill the ser

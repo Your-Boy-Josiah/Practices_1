@@ -1,40 +1,6 @@
-// const mongose = require('mongoose');
+const PM = require('mongoose');
 
-// const productSchema = new mongose.Schema({
-//     name:{
-//         type: String,
-//         required: [true, 'Please add a name']
-//     },
-//     size:{
-//         type: String,
-//         required: [true, 'Please add a size'],
-//     },
-//     description:{
-//         type: String,
-//         required: [true, 'Please add a description']
-//     },
-//     price:{
-//         type: Number,
-//         required: [true, 'Please add a price']
-//     },
-//     quantity:{
-//         type: Number,
-//         required: [true, 'Please add a quantity']
-//     },
-
-    
-
-// },
-// {timestamps: true}  //Date of creation and update will be automatically added to the documentation.
-// );
-
-// //Create a model from Schema
-// const Product = mongose.model('Product', productSchema);
-// module.exports = Product;   //export the model to be used in other files
-
-const mongose = require('mongoose');
-
-const productSchema = new mongose.Schema(
+const productSchema = new PM.Schema(
   {
     name: {
       type: String,
@@ -49,6 +15,13 @@ const productSchema = new mongose.Schema(
       trim: true,
       index: true,
     },
+    sku: {
+      type: String,
+      unique: true,
+      trim: true,
+      sparse: true, // This is important! It allows the SKU to be optional without crashing the 'unique' rule
+      index: true
+    },
     category: {
       type: String,
       required: [true, 'Product category is required'],
@@ -59,7 +32,7 @@ const productSchema = new mongose.Schema(
         'Dairy',
         'Frozen Foods',
         'Meat & Seafood',
-        'Produce',
+        'Farm Produce',
         'Snacks',
         'Household',
         'Personal Care',
@@ -116,7 +89,11 @@ const productSchema = new mongose.Schema(
       default: true, // Set to false instead of deleting products with sales history
     },
   },
-  { timestamps: true }
+  { 
+    timestamps: true,
+    toJSON: { virtuals: true },    // Tells Mongoose to include virtuals in API responses
+    toObject: { virtuals: true }   // Tells Mongoose to include virtuals in standard console.logs
+  }
 );
 
 // Virtual: Check if product is low on stock
@@ -130,6 +107,7 @@ productSchema.virtual('profitPerUnit').get(function () {
 });
 
 //Create a model from Schema
-const Product = mongose.model('Product', productSchema); 
+const Product = PM.model('Product', productSchema); 
+
 //Date of creation and update will be automatically added to the documentation
 module.exports = Product;  //export the model to be used in other files
