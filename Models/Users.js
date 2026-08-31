@@ -23,6 +23,10 @@ const userSchema =new mongose.Schema({
         enum:[ 'Male', 'Female', 'Gay', 'Lesbian', 'Bisexual', 'Transgender', 'Non-binary', 'Other' ],
         required: [true, 'Please select your gender']
     },
+    HasAdminAccess: {
+        type: Boolean,
+        default: false
+    },
     phone_number:{
         type: String,
         required: [true, 'Please add your phone number'],

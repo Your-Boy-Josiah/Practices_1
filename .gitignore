@@ -1,17 +1,124 @@
-# Dependencies
+# # Dependencies
+# node_modules/
+
+# # Environment variables & secrets (CRITICAL: never commit API keys or passwords)
+# .env
+# .env.local
+
+# # Operating System & Editor metadata
+# .DS_Store
+# Thumbs.db
+# .vscode/
+
+# # Build outputs & logs
+# dist/
+# build/
+# *.log
+
+# ============================================================
+#  .gitignore
+#  Tells Git which files and folders to never track.
+#  Applies to this Node.js + Express + MongoDB backend project.
+# ============================================================
+
+
+# ============================================================
+# Node.js Dependencies
+# ============================================================
+
+# Installed packages — never commit these, they are restored with npm install
 node_modules/
 
-# Environment variables & secrets (CRITICAL: never commit API keys or passwords)
+# npm and yarn cache directories
+.npm
+.yarn-integrity
+
+# Packed npm release archives
+*.tgz
+
+
+# ============================================================
+# Environment Variables & Secrets  (CRITICAL — never commit)
+# ============================================================
+
+# All .env variants — covers local, test, and production configs
 .env
 .env.local
+.env.test
+.env.development
+.env.production
 
-# Operating System & Editor metadata
-.DS_Store
-Thumbs.db
-.vscode/
+# Catch-all for any other .env files added in the future
+.env*.local
 
-# Build outputs & logs
-dist/
-build/
+
+# ============================================================
+# Log Files
+# ============================================================
+
+# General log files
 *.log
 
+# npm and yarn specific debug and error logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+
+# ============================================================
+# Test Coverage Output
+# ============================================================
+
+# Generated when running test coverage reports (Jest, Mocha, etc.)
+coverage/
+.nyc_output/
+
+
+# ============================================================
+# Build & Compile Output
+# ============================================================
+
+# Compiled or transpiled output folders
+dist/
+build/
+
+
+# ============================================================
+# Editor & IDE Files
+# ============================================================
+
+# VS Code — only ignore user-specific workspace settings, not shared config
+.vscode/settings.json
+.vscode/launch.json
+
+# JetBrains IDEs (WebStorm, IntelliJ)
+.idea/
+
+# ESLint cache generated during linting
+.eslintcache
+
+
+# ============================================================
+# Operating System Metadata
+# ============================================================
+
+# macOS folder metadata files
+.DS_Store
+
+# Windows thumbnail cache files
+Thumbs.db
+
+# Windows desktop layout file
+Desktop.ini
+
+
+# ============================================================
+# Misc Node.js Artifacts
+# ============================================================
+
+# REPL history saved when using the Node.js interactive shell
+.node_repl_history
+
+# Runtime process ID files
+*.pid
+*.pid.lock 
