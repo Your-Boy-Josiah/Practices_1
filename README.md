@@ -4,15 +4,15 @@ This is a Practices of My Backend Class from TS Academy This is my first commit 
 ## My Second Commit 
 I created the User routes and Controller and I had issues push to my github so it looks like I did to Second commit. Guess it would not be so easy i have to fail to grow 
 
-## Added a README.md 
+## Added a README.md in this commit
 through a commit that was fun to learn to do because i did not know what a README.md is but i realise it whatever i want it to be and a story of my codes journey 
 
 'I used AI today to write the below but i guess after today i wouldn't use it any more it requires a lot of supervision and people act like it doesn't that is werid'  
 
-### I Expanded more On the User.js and Product.js Models
+### I Expanded more On the User.js and Product.js Models in this commit
 I went back and rewrote both the `User` model and the `Product` model to be more complete and production-ready. Before, they were bare minimum. Now they are structured to actually support a real inventory management system for a store or supermarket — with proper fields, types, defaults, and validation in place.
 
-### I  ReBuilt the Product_Controller.js
+### I  ReBuilt the Product_Controller.js in this commit
 This was one of the biggest steps so far. I wrote the full `Product_Controller.js` which handles five core operations:
 
 - **CreateProduct** — Validates required fields, checks for duplicate barcodes and SKUs, sanitises and casts all input types, then saves the product to the database.
@@ -23,7 +23,7 @@ This was one of the biggest steps so far. I wrote the full `Product_Controller.j
 
 I also made sure all numeric fields use `=== undefined` checks rather than simple falsy checks, so that a value of `0` is never incorrectly rejected as missing.
 
-### ReBuilt the Product Routes
+### ReBuilt the Product Routes in this commit
 
 I wrote `Product_Routes.js` to wire up all the controller functions to their correct HTTP endpoints. The route file is clean and structured — public routes like `GetProducts` and `GetProductByBarcode` are open, while `CreateProduct`, `UpdateProduct`, and `DeleteProduct` are protected behind `verifyToken` and `requireAdmin` middleware so only authenticated admins can modify inventory.
 
@@ -31,7 +31,6 @@ One important detail I learned: the `/barcode/:barcode` route **must be declared
 
 ## New Commit: Doing another ReBuild of all my files and add Auth & Custom Features
 Today, I fully Rewired my the backend architecture. I loved the idea of creating custom features and aliases, like doing `const PM = require('mongoose')` and `const TFA = require('bcrypt')` just to personalize the code and make it my own. 
-
 Other things I did in this commit:
 - Added a `pre('save')` hook to `User.js` to hash passwords automatically so the controller stays clean.
 - Fixed the Mongoose virtuals in `Product.js` by adding `toJSON: { virtuals: true }` so the frontend can actually see the math.
