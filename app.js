@@ -9,6 +9,7 @@ const cors = require('cors');
 const helmet = require('helmet'); // Security Headers
 const rateLimit = require('express-rate-limit'); // Brute-force protection
 const mongoSanitize = require('express-mongo-sanitize'); // NoSQL Injection protection
+const path = require('path');
 require('dotenv').config(); 
 
 const connectDB = require('./Config/Database_Config');
@@ -30,8 +31,8 @@ const app = express();
 // GLOBAL SECURITY & MIDDLEWARE
 // ==============================================================
 
-// 1. Helmet: Secures HTTP headers and hides Express fingerprint
-app.use(helmet());
+// 1. Helmet: Secures HTTP headers and allows cross-origin resource loading for static assets
+app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 
 // 2. Rate Limiting: Max 100 requests per 15 minutes per IP address
 const limiter = rateLimit({
@@ -44,14 +45,24 @@ app.use('/api', limiter); // Apply to all /api routes
 // 3. CORS: Allows frontend connections
 app.use(cors()); 
 
-// 4. Body Parser
+// 4. Body Parsers
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// 5. Data Sanitization: Removes '$' and '.' from user inputs to prevent NoSQL injection
-app.use(mongoSanitize());
+// 5. Data Sanitization: Mutates inputs in place to prevent NoSQL injection
+// Avoids overwriting req.query directly, which throws an error on read-only getters
+app.use((req, res, next) => {
+  if (req.body) mongoSanitize.sanitize(req.body);
+  if (req.params) mongoSanitize.sanitize(req.params);
+  if (req.query) mongoSanitize.sanitize(req.query);
+  next();
+});
 
 // 6. System Logger (CCTV)
 app.use(systemLogger);
+
+// 7. Serve uploaded files statically so they can be viewed via URL
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ==============================================================
 // CONNECT TO MONGODB
@@ -70,15 +81,14 @@ app.use('/api/reports', ReportRoute);
 // ==============================================================
 // 404 FALLBACK ROUTE
 // ==============================================================
-
-app.use('(.*)', (req, res) => {
+app.use((req, res, next) => {
+  const error = new Error(`Route Not Found: ${req.originalUrl} does not exist.`);
   res.status(404);
-  throw new Error(`Route Not Found: ${req.originalUrl} does not exist.`);
+  next(error); // Passes the error down to the Global Error Handler
 });
 
 // ==============================================================
 // GLOBAL ERROR HANDLER (MUST BE LAST!)
-// Catches the 404 error above, or any controller crashes
 // ==============================================================
 app.use(errorHandler);
 
@@ -90,4 +100,3 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Supermarket API is running securely on port ${PORT}`);
 });
-

@@ -1,9 +1,7 @@
 // ===============================================================
 //  Product_Controller.js
 //  Handles all CRUD operations for the Product resource.
-//  Imported by Product_Routes.js and mounted under /api/products
-// Mongoose model for the Product collection
-// Mongoose core library used here for ObjectId validation
+//  Imported by Product_Routes.js and mounted under /api/products.
 // ===============================================================
 
 const Product = require('../Models/Products');
@@ -11,13 +9,13 @@ const PM = require('mongoose');
 
 // ==============================================================
 // CREATE A NEW PRODUCT
-// Route  : POST /api/products
-// Access : Admin only (protected by verifyToken + requireAdmin)
+// Route  : POST /api/products/CreateProduct
+// Access : Store_Keeper, Admin, Super_Admin
 // ==============================================================
 
 exports.CreateProduct = async (req, res) => {
   try {
-    // Destructure all expected fields from the request body 
+    // 1. Destructure all expected fields from the request body
     const {
       name,
       barcode,
@@ -32,90 +30,78 @@ exports.CreateProduct = async (req, res) => {
       isPerishable,
       expiryDate,
       description,
+      supplierId,
     } = req.body;
 
-    // Validate that all mandatory fields are present 
-    // costPrice, sellingPrice, and quantity use strict undefined check
-    // because 0 is a valid value and would fail a simple falsy check (!costPrice)
-
-    if ( 
-      !name || 
-      !barcode || 
-      !category || 
-      costPrice === undefined || 
-      sellingPrice === undefined || 
-      quantity === undefined ) {
+    // 2. Validate mandatory fields
+    // Form-data empty values can arrive as empty strings, so check for both undefined and ''
+    if (
+      !name ||
+      !barcode ||
+      !category ||
+      costPrice === undefined || costPrice === '' ||
+      sellingPrice === undefined || sellingPrice === '' ||
+      quantity === undefined || quantity === ''
+    ) {
       return res.status(400).json({
-        message:
-          'Please provide all required fields: name, barcode, category, costPrice, sellingPrice, quantity',
+        message: 'Please provide all required fields: name, barcode, category, costPrice, sellingPrice, quantity',
       });
     }
 
-    // Check if a product with the same barcode already exists 
-    // trim() removes accidental leading/trailing whitespace before comparison
-
+    // 3. Check for barcode collision
     const existingBarcode = await Product.findOne({ barcode: barcode.trim() });
     if (existingBarcode) {
       return res.status(409).json({ message: 'A product with this barcode already exists' });
     }
 
-    // Check SKU uniqueness only if a SKU was provided 
-    // SKU is optional, but if given it must be unique across all products
-    // Stored in uppercase for consistent comparison
-
-    if (sku) {
+    // 4. Check for SKU collision if provided
+    if (sku && sku.trim()) {
       const existingSku = await Product.findOne({ sku: sku.trim().toUpperCase() });
       if (existingSku) {
         return res.status(409).json({ message: 'A product with this SKU already exists' });
       }
     }
 
-    // Build the new Product document 
-    // Each field is sanitised and cast to its correct type before saving:
-    //   - Strings  → trimmed to remove whitespace
-    //   - Numbers  → cast with Number() to avoid storing string values
-    //   - Booleans → cast with Boolean() so "false"/"0" are handled safely
-    //   - Dates    → converted to JS Date objects
-    //   - Optional fields fall back to safe defaults if not provided
+    // 5. Handle Product Image (Multer)
+    const imagePath = req.file
+      ? `uploads/${req.file.filename}`
+      : 'uploads/default-product.png';
 
+    // 6. Build the new Product document
     const product = new Product({
       name: name.trim(),
       barcode: barcode.trim(),
-      sku: sku ? sku.trim().toUpperCase() : undefined,  // Omit field if not provided
-      category,
+      sku: sku && sku.trim() ? sku.trim().toUpperCase() : undefined,
+      category: category.trim(),
       costPrice: Number(costPrice),
       sellingPrice: Number(sellingPrice),
       quantity: Number(quantity),
-      unit: unit || 'pcs',                              // Default unit is pieces
-      size: size ? size.trim() : null,
-      reorderLevel: reorderLevel !== undefined ? Number(reorderLevel) : 10, // Default reorder threshold
-      isPerishable: Boolean(isPerishable),
+      unit: unit ? unit.trim() : 'pcs',
+      size: size && size.trim() ? size.trim() : null,
+      reorderLevel: reorderLevel !== undefined && reorderLevel !== '' ? Number(reorderLevel) : 10,
+      isPerishable: String(isPerishable) === 'true',
       expiryDate: expiryDate ? new Date(expiryDate) : null,
       description: description ? description.trim() : '',
-      isActive: true,                                   // New products are active by default
+      supplierId: supplierId && supplierId.trim() ? supplierId.trim() : undefined,
+      image: imagePath,
+      isActive: true,
     });
 
-    // Persist the new product document to MongoDB 
-
+    // 7. Persist to MongoDB
     const savedProduct = await product.save();
 
-    // Step 7: Return the saved product with a 201 Created status 
     return res.status(201).json({
+      success: true,
       message: 'Product created successfully',
       product: savedProduct,
     });
 
   } catch (error) {
-    // Error Handler A: MongoDB duplicate key error (code 11000) 
-    // Triggered if a unique index is violated at the DB level
-    // (acts as a second safety net after the manual checks above)
-
+    // Duplicate key error (code 11000)
     if (error.code === 11000) {
-      const field = Object.keys(error.keyPattern)[0]; // Extract which field caused the clash
+      const field = Object.keys(error.keyPattern || error.keyValue)[0];
       return res.status(409).json({ message: `Duplicate value for ${field}` });
     }
-
-    // Error Handler B: Any other unexpected server error
 
     console.error('Error creating product:', error);
     return res.status(500).json({ message: 'Error creating product', error: error.message });
@@ -125,34 +111,18 @@ exports.CreateProduct = async (req, res) => {
 // ============================================================
 // GET ALL PRODUCTS  (Search + Filter + Pagination)
 // Route  : GET /api/products?page=1&limit=20&search=milk&category=dairy&lowStock=true
-// Access : Public
+// Access : Authenticated Staff
 // ============================================================
 
 exports.GetProducts = async (req, res) => {
   try {
-    // Parse and sanitise pagination parameters from the query string 
-    // Math.max ensures page is never less than 1
-    // Math.min caps limit at 100 to prevent excessively large DB reads
-
-    const page  = Math.max(1, parseInt(req.query.page,  10) || 1);
+    const page  = Math.max(1, parseInt(req.query.page, 10) || 1);
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
-
-    // Calculate how many documents to skip to reach the requested page
-
-    const skip = (page - 1) * limit;
-
-    // Extract optional filter parameters from the query string 
+    const skip  = (page - 1) * limit;
 
     const { search, category, lowStock } = req.query;
 
-    // Step 3: Build the MongoDB query object 
-    // Start by only returning active (non-archived) products
-    // ALL filters must be added to this object BEFORE any DB call is made
-
     const query = { isActive: true };
-
-    // Add full-text style search filter if a search term was provided
-    // $or checks name, barcode, and SKU fields using a case-insensitive regex
 
     if (search) {
       query.$or = [
@@ -162,29 +132,18 @@ exports.GetProducts = async (req, res) => {
       ];
     }
 
-    // Add category filter if provided 
-
     if (category) {
-      query.category = category;
+      query.category = category.trim();
     }
-
-    // Add low-stock filter if requested 
-    // $expr allows comparison between two fields in the same document
-    // Matches products where quantity <= reorderLevel
 
     if (lowStock === 'true') {
       query.$expr = { $lte: ['$quantity', '$reorderLevel'] };
     }
 
-    // Execute both DB queries simultaneously using Promise.all 
-    // Running them in parallel is faster than awaiting them one after the other.
-
     const [products, totalProducts] = await Promise.all([
       Product.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
-      Product.countDocuments(query), // Total count used to calculate pagination metadata
+      Product.countDocuments(query),
     ]);
-
-    // Return the products along with pagination metadata 
 
     return res.status(200).json({
       success: true,
@@ -198,7 +157,6 @@ exports.GetProducts = async (req, res) => {
     });
 
   } catch (error) {
-    // Error Handler: Unexpected server error while fetching 
     console.error('Error fetching products:', error);
     return res.status(500).json({ message: 'Error fetching products', error: error.message });
   }
@@ -207,30 +165,22 @@ exports.GetProducts = async (req, res) => {
 // ============================================================
 // GET PRODUCT BY BARCODE (Fast POS Scanner Lookup)
 // Route  : GET /api/products/barcode/:barcode
-// Access : Public
+// Access : Authenticated Staff
 // ============================================================
 
 exports.GetProductByBarcode = async (req, res) => {
   try {
-    // Extract the barcode value from the URL parameter 
     const { barcode } = req.params;
-
-    // Query the DB for an active product matching this barcode 
-    // isActive: true ensures archived products are not returned to the POS
-    // trim() handles any accidental whitespace that may come from a scanner
 
     const product = await Product.findOne({ barcode: barcode.trim(), isActive: true });
 
-    // Return 404 if no matching active product is found 
     if (!product) {
       return res.status(404).json({ message: 'Product not found with this barcode' });
     }
 
-    // Return the matched product
-    return res.status(200).json({ product });
+    return res.status(200).json({ success: true, product });
 
   } catch (error) {
-    // Error Handler: Unexpected server error during barcode lookup
     console.error('Error finding barcode:', error);
     return res.status(500).json({ message: 'Error scanning barcode', error: error.message });
   }
@@ -239,88 +189,72 @@ exports.GetProductByBarcode = async (req, res) => {
 // ============================================================
 // UPDATE A PRODUCT
 // Route  : PUT /api/products/:id
-// Access : Admin only (protected by verifyToken + requireAdmin)
+// Access : Store_Keeper, Admin, Super_Admin
 // ============================================================
 
 exports.UpdateProduct = async (req, res) => {
   try {
-    // Extract the product ID from the URL parameter 
     const { id } = req.params;
-
-    // Validate that the ID is a valid MongoDB ObjectId 
-    // Without this check, an invalid ID (e.g. "abc") causes a Mongoose CastError
-    // which would surface as an unhandled 500. We return a clean 400 instead.
 
     if (!PM.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: 'Invalid product ID' });
     }
 
-    // Copy the request body to avoid mutating the original object
-    // Then normalise any unique key fields before saving to keep DB data consistent
     const updateData = { ...req.body };
 
-    // Normalise SKU to uppercase if it is being updated
+    // Format fields if they are included in the request
     if (updateData.sku) updateData.sku = updateData.sku.trim().toUpperCase();
-
-    // Trim whitespace from barcode if it is being updated
     if (updateData.barcode) updateData.barcode = updateData.barcode.trim();
+    if (updateData.costPrice !== undefined && updateData.costPrice !== '') updateData.costPrice = Number(updateData.costPrice);
+    if (updateData.sellingPrice !== undefined && updateData.sellingPrice !== '') updateData.sellingPrice = Number(updateData.sellingPrice);
+    if (updateData.quantity !== undefined && updateData.quantity !== '') updateData.quantity = Number(updateData.quantity);
+    if (updateData.reorderLevel !== undefined && updateData.reorderLevel !== '') updateData.reorderLevel = Number(updateData.reorderLevel);
+    if (updateData.isPerishable !== undefined) updateData.isPerishable = String(updateData.isPerishable) === 'true';
 
-    // Find the product by ID and apply the update
-    // new: true → returns the updated document instead of the old one
-    // runValidators: true → enforces schema-level validation rules on the update
+    // If a new product image was uploaded during the update
+    if (req.file) {
+      updateData.image = `uploads/${req.file.filename}`;
+    }
 
     const updatedProduct = await Product.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true,
     });
 
-    // Return 404 if no product was found with the given ID 
     if (!updatedProduct) {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    // Return the updated product document
     return res.status(200).json({
+      success: true,
       message: 'Product updated successfully',
       product: updatedProduct,
     });
 
   } catch (error) {
-    // Error Handler A: MongoDB duplicate key error (code 11000)
-    // Triggered if the new barcode or SKU value already belongs to another product
     if (error.code === 11000) {
-      const field = Object.keys(error.keyPattern)[0];
+      const field = Object.keys(error.keyPattern || error.keyValue)[0];
       return res.status(409).json({ message: `Duplicate value for ${field}` });
     }
 
-    // Error Handler B: Any other unexpected server error
     console.error('Error updating product:', error);
     return res.status(500).json({ message: 'Error updating product', error: error.message });
   }
 };
 
 // ============================================================
-// SOFT DELETE A PRODUCT  (Archive / Deactivated data is kept)
+// SOFT DELETE A PRODUCT  (Archive / Deactivation)
 // Route  : DELETE /api/products/:id
-// Access : Admin only (protected by verifyToken + requireAdmin)
+// Access : Admin, Super_Admin
 // ============================================================
 
 exports.DeleteProduct = async (req, res) => {
   try {
-    // Extract the product ID from the URL parameter 
     const { id } = req.params;
-
-    // Validate that the ID is a valid MongoDB ObjectID 
-    // Prevents a Mongoose CastError from becoming an unhandled 500 error
 
     if (!PM.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: 'Invalid product ID' });
     }
-
-    // Set isActive to false instead of deleting the document
-    // This is a soft delete the product record is preserved in the DB
-    // for historical reference (e.g. past sales records, audit trails)
-    // new: true → confirms the update was applied by returning the updated doc
 
     const product = await Product.findByIdAndUpdate(
       id,
@@ -328,16 +262,16 @@ exports.DeleteProduct = async (req, res) => {
       { new: true }
     );
 
-    //Return 404 if no product was found with the given ID 
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    // Confirm the product has been archived 
-    return res.status(200).json({ message: 'Product archived/deactivated successfully' });
+    return res.status(200).json({ 
+      success: true, 
+      message: 'Product archived/deactivated successfully' 
+    });
 
   } catch (error) {
-    //Error Handler: Unexpected server error during soft delete 
     console.error('Error archiving product:', error);
     return res.status(500).json({ message: 'Error deleting product', error: error.message });
   }

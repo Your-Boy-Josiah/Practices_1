@@ -1,16 +1,21 @@
 // ============================================================
 //  Product_Routes.js
 //  Defines all HTTP routes for the Product resource.
-//  Imported by app.js and mounted under /api/products
+//  Imported by app.js and mounted under /api/products.
 // ============================================================
 
 const express = require('express');
 const router = express.Router();
-const ProductController = require('../Controllers/Product_Controller'); // Fixed the 3 L's typo!
 
-// Import our Security Middlewares
-const { verifyToken } = require('../Middleware/auth'); // Fixed from 'verify' to 'verifyToken'
-const { authorizeRoles } = require('../Middleware/role'); // Added the Role Bouncer!
+// Import Controller
+const ProductController = require('../Controllers/Product_Controller');
+
+// Import Security Middlewares
+const { verifyToken } = require('../Middleware/auth');
+const { authorizeRoles } = require('../Middleware/role');
+
+// Import Multer Upload Middleware
+const upload = require('../Middleware/Upload');
 
 // ============================================================
 // GET ALL PRODUCTS  (Pagination + Search + Filters)
@@ -27,20 +32,26 @@ router.get('/barcode/:barcode', verifyToken, ProductController.GetProductByBarco
 // ============================================================
 // CREATE A NEW PRODUCT
 // Access : Store_Keeper, Admin, Super_Admin
+// Payload: multipart/form-data with optional 'image' file
 // ============================================================
-router.post('/CreateProduct', 
+router.post(
+  '/CreateProduct', 
   verifyToken, 
   authorizeRoles('Store_Keeper', 'Admin', 'Super_Admin'), 
+  upload.single('image'), 
   ProductController.CreateProduct
 );
 
 // ============================================================
 // UPDATE A PRODUCT
 // Access : Store_Keeper, Admin, Super_Admin
+// Payload: multipart/form-data or application/json with optional 'image' file
 // ============================================================
-router.put('/:id', 
+router.put(
+  '/:id', 
   verifyToken, 
   authorizeRoles('Store_Keeper', 'Admin', 'Super_Admin'), 
+  upload.single('image'), 
   ProductController.UpdateProduct
 );
 
@@ -48,7 +59,8 @@ router.put('/:id',
 // SOFT DELETE A PRODUCT  (Archive / Deactivate)
 // Access : Management Only (Admin, Super_Admin)
 // ============================================================
-router.delete('/:id', 
+router.delete(
+  '/:id', 
   verifyToken,  
   authorizeRoles('Admin', 'Super_Admin'), 
   ProductController.DeleteProduct

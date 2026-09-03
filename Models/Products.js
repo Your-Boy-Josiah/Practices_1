@@ -26,6 +26,10 @@ const productSchema = new PM.Schema(
       trim: true,
       index: true, // Indexed for lightning-fast Point-of-Sale (POS) lookups
     },
+    image: {
+      type: String,
+      default: 'uploads/default-product.png',
+    },
     sku: {
       type: String,
       unique: true,
