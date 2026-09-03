@@ -1,3 +1,8 @@
+# ============================================================
+#  .gitignore
+#  Tells Git which files and folders to never track.
+# ============================================================
+
 # # Dependencies
 # node_modules/
 
@@ -14,13 +19,6 @@
 # dist/
 # build/
 # *.log
-
-# ============================================================
-#  .gitignore
-#  Tells Git which files and folders to never track.
-#  Applies to this Node.js + Express + MongoDB backend project.
-# ============================================================
-
 
 # ============================================================
 # Node.js Dependencies
@@ -41,7 +39,6 @@ node_modules/
 # Environment Variables & Secrets  (CRITICAL — never commit)
 # ============================================================
 
-# All .env variants — covers local, test, and production configs
 .env
 .env.local
 .env.test

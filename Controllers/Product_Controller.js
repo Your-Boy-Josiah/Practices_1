@@ -3,7 +3,7 @@
 //  Handles all CRUD operations for the Product resource.
 //  Imported by Product_Routes.js and mounted under /api/products
 // Mongoose model for the Product collection
-// Mongoose core library — used here for ObjectId validation
+// Mongoose core library used here for ObjectId validation
 // ===============================================================
 
 const Product = require('../Models/Products');

@@ -1,4 +1,15 @@
-const PM = require('mongoose');
+// ===============================================================
+//  Product.js
+//  Mongoose model defining the schema for supermarket inventory.
+//  Handles core product details, POS barcode indexing, stock levels,
+//  and dynamic virtual properties (like profit margins).
+// ===============================================================
+
+const PM = require('mongoose'); 
+
+// ==============================================================
+// SCHEMA DEFINITION
+// ==============================================================
 
 const productSchema = new PM.Schema(
   {
@@ -6,20 +17,20 @@ const productSchema = new PM.Schema(
       type: String,
       required: [true, 'Product name is required'],
       trim: true,
-      index: true,
+      index: true, // Indexed for faster text-based search queries
     },
     barcode: {
       type: String,
       required: [true, 'Barcode is required for scanning'],
       unique: true,
       trim: true,
-      index: true,
+      index: true, // Indexed for lightning-fast Point-of-Sale (POS) lookups
     },
     sku: {
       type: String,
       unique: true,
       trim: true,
-      sparse: true, // This is important! It allows the SKU to be optional without crashing the 'unique' rule
+      sparse: true, // IMPORTANT: Allows SKU to be optional without crashing the 'unique' rule if left null
       index: true
     },
     category: {
@@ -38,12 +49,17 @@ const productSchema = new PM.Schema(
         'Personal Care',
         'Other',
       ],
-      index: true,
+      index: true, // Indexed to speed up category-based frontend filtering
     },
     costPrice: {
       type: Number,
       required: [true, 'Cost price is required'],
       min: [0, 'Cost price cannot be negative'],
+    },
+    supplierId: {
+      type: PM.Schema.Types.ObjectId,
+      ref: 'Supplier',
+      required: [true, 'Supplier ID is required'],
     },
     sellingPrice: {
       type: Number,
@@ -64,20 +80,20 @@ const productSchema = new PM.Schema(
     size: {
       type: String,
       trim: true,
-      default: null, // e.g., '500ml', '2kg', 'Pack of 6'
+      default: null, // Captures descriptive sizes (e.g., '500ml', '2kg', 'Pack of 6')
     },
     reorderLevel: {
       type: Number,
-      default: 10,
+      default: 10, // The threshold quantity that triggers a low-stock alert
       min: [0, 'Reorder level cannot be negative'],
     },
     isPerishable: {
       type: Boolean,
-      default: false,
+      default: false, // Flags items that can spoil (dairy, produce, meat)
     },
     expiryDate: {
       type: Date,
-      default: null,
+      default: null, // Required if isPerishable is true (handled in business logic)
     },
     description: {
       type: String,
@@ -86,28 +102,42 @@ const productSchema = new PM.Schema(
     },
     isActive: {
       type: Boolean,
-      default: true, // Set to false instead of deleting products with sales history
+      default: true, 
+      // Soft delete mechanism: set to false instead of permanently deleting products to preserve sales history
     },
   },
+  // ============================================================
+  // SCHEMA OPTIONS
+  // ============================================================
   { 
-    timestamps: true,
-    toJSON: { virtuals: true },    // Tells Mongoose to include virtuals in API responses
+    timestamps: true,              // Automatically adds 'createdAt' and 'updatedAt' fields
+    toJSON: { virtuals: true },    // Tells Mongoose to include virtuals in API JSON responses
     toObject: { virtuals: true }   // Tells Mongoose to include virtuals in standard console.logs
   }
 );
 
+// ============================================================
+// VIRTUAL PROPERTIES
+// Dynamic fields that are computed on-the-fly when requested.
+// These are NOT saved to the MongoDB database, saving space.
+// ============================================================
+
 // Virtual: Check if product is low on stock
 productSchema.virtual('isLowStock').get(function () {
-  return this.quantity <= this.reorderLevel;
+  return this.quantity <= this.reorderLevel; // Returns true if current stock is at or below the warning threshold
 });
 
 // Virtual: Calculate profit margin per unit
-productSchema.virtual('profitPerUnit').get(function () {
-  return this.sellingPrice - this.costPrice;
+productSchema.virtual('profitPerUnit').get(function () {  
+  return this.sellingPrice - this.costPrice; // Calculates gross profit per item sold
 });
 
-//Create a model from Schema
+// ============================================================
+// MODEL COMPILATION & EXPORT
+// Compiles the schema into a usable model and exports it
+// ============================================================
+
 const Product = PM.model('Product', productSchema); 
 
-//Date of creation and update will be automatically added to the documentation
-module.exports = Product;  //export the model to be used in other files
+module.exports = Product;
+

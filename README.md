@@ -37,9 +37,19 @@ Other things I did in this commit:
 - Rewrote the User Controller to generate JWT tokens and properly handle MongoDB duplicate key errors (11000).
 - Created `Middleware` to act as a bouncer for protected routes, but just a folder for now
 - Built a clean `Database_Config.js` and wired everything together in my main `app.js` file.
+ 
+ ### New Commit => Milestone Achieved: Enterprise Backend Architecture Expanded to be more complete
+
+Successfully architected and secured the core backend infrastructure for the Supermarket POS & Inventory System. 
+**Key Features Implemented:**
+*   **Role-Based Access Control (RBAC):** Implemented strict middleware (`auth.js`, `role.js`) managing permissions across `User`, `Store_Keeper`, `Admin`, and `Super_Admin` tiers.
+*   **ACID Database Transactions:** Engineered secure `Sales` (checkout) and `Restock` (delivery) controllers using MongoDB sessions to ensure inventory deductions/additions happen perfectly in sync with ledger logs.
+*   **Automated Audit Trail:** Created a background logging middleware that silently tracks all mutations (POST/PUT/DELETE), recording the user ID, action, and IP address to an unalterable `AuditLog` collection.
+*   **Analytics Engine:** Developed an Admin dashboard controller generating real-time daily revenue, low stock warnings, and 7-day perishable expiry alerts.
+*   **Production-Grade Security:** Hardened the Express application with `helmet` (header protection), `express-rate-limit` (brute-force defense), `cors`, and `express-mongo-sanitize` (NoSQL injection prevention).
+*   **Global Error Handling:** Implemented a unified error catcher to prevent server crashes and return clean JSON responses.
 
 ## 🚀 Progress & Milestones
-
 - [x] Initialised Git repository and configured VS Code with Git Bash
 - [x] Configured `.gitignore` to exclude `node_modules`, `.env`, and other sensitive files
 - [x] Built and connected MongoDB with Mongoose
@@ -56,25 +66,41 @@ Other things I did in this commit:
 
 ## 🏗️ Project Structure
 
+├── Config/
+│   └── Database_Config.js        # Establishes the connection to MongoDB
+│
 ├── Controllers/
-│   ├── User_Controller.js        # Handles user registration and login
-│   └── Product_Controller.js     # Handles all product CRUD operations
+│   ├── User_Controller.js        # Handles auth, registration, and user management
+│   ├── Product_Controller.js     # Manages product CRUD and inventory catalog
+│   ├── Sales_Controller.js       # Processes POS checkouts using ACID transactions
+│   ├── Restock_Controller.js     # Manages incoming supplier deliveries and stock updates
+│   └── Report_Controller.js      # Generates dashboard analytics (revenue, low stock, expiry)
+│
+├── Middleware/
+│   ├── auth.js                   # JWT Verification (The ID Checker)
+│   ├── role.js                   # Role-Based Access Control (RBAC) (The VIP Bouncer)
+│   ├── logger.js                 # Automated CCTV background logging for all data mutations
+│   └── error.js                  # Global error handler preventing server crashes
 │
 ├── Models/
-│   ├── User.js                   # User schema (auth, roles)
-│   └── Products.js               # Product schema (inventory fields)
+│   ├── Users.js                  # Schema with bcrypt hashing and RBAC levels
+│   ├── Products.js               # Catalog schema with barcode, pricing, and virtuals
+│   ├── Supplier.js               # Vendor contact info and delivery lead times
+│   ├── Sales.js                  # Digital receipts locking in price at time of checkout
+│   ├── Restock.js                # Unalterable ledger of all incoming truck deliveries
+│   └── AuditLog.js               # Historical track record of "who did what and when"
 │
 ├── Routes/
-│   ├── User_Routes.js            # User-facing endpoints
-│   └── Product_Routes.js         # Product endpoints (public + admin-protected)
+│   ├── User_Routes.js            # Routes for /api/users
+│   ├── Product_Routes.js         # Routes for /api/products 
+│   ├── Sales_Routes.js           # Routes for /api/sales 
+│   ├── Restock_Routes.js         # Routes for /api/restock 
+│   └── Report_Routes.js          # Routes for /api/reports 
 │
-├── middleware/
-│   └── authMiddleware.js         # verifyToken and requireAdmin middleware (I Do not have a middleware yet do that later)
-│
-├── .gitignore
-├── .env                          # Environment variables (never committed)
-└── server.js                     # Entry point — Express app setup
-
+├── .env                          # Environment variables (DB URI, JWT Secret) [Not Committed]
+├── .gitignore                    # Tells Git to ignore node_modules and .env
+├── package.json                  # Project metadata and security dependencies
+└── app.js                        # Main Server Entry Point (Middlewares, DB init, Routes)
 
 ---
 

@@ -1,0 +1,2 @@
+### TEST GET / WEBSITE 
+GET http://localhost:3000
