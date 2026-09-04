@@ -70,9 +70,9 @@
 [ ] Test end-to-end product uploads using various image formats
 [ ] Connect frontend or POS interface to the API (In Progress)
 
+```
 
 ## System Architecture & File Structure
-
 ```
 Practices/
 |
