@@ -1,2 +1,80 @@
-### TEST GET / WEBSITE 
-GET http://localhost:3000
+### ============================================================================
+### SUPERMARKET API TEST SUITE
+### Requires VS Code "REST Client" Extension
+### Click "Send Request" above any endpoint to execute it.
+### ============================================================================
+
+@baseUrl = http://localhost:3000/api
+# Paste your token here after logging in!
+@token = YOUR_JWT_TOKEN_HERE 
+
+### ============================================================================
+### 1. USER ENDPOINTS
+### ============================================================================
+
+### Register a new User
+POST {{baseUrl}}/users/CreateUser
+Content-Type: application/json
+
+{
+  "name": "Josiah Tester",
+  "email": "test@store.com",
+  "password": "Password123!",
+  "gender": "Male",
+  "phone_number": "08011223344",
+  "age": 28
+}
+
+### Login User (Copy the token from the response and paste it in @token above)
+POST {{baseUrl}}/users/LoginUser
+Content-Type: application/json
+
+{
+  "email": "admin@store.com",
+  "password": "AdminPass123!"
+}
+
+
+### ============================================================================
+### 2. PRODUCT ENDPOINTS (Requires Token)
+### ============================================================================
+
+### Create a New Product
+POST {{baseUrl}}/products/CreateProduct
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Peak Milk Powder 400g",
+  "barcode": "100200300",
+  "sku": "DAIRY-PEAK-400",
+  "category": "Dairy",
+  "costPrice": 1200,
+  "sellingPrice": 1500,
+  "quantity": 50,
+  "unit": "tin",
+  "reorderLevel": 10,
+  "isPerishable": true,
+  "description": "Full cream milk powder"
+}
+
+### Get All Products (Test pagination and filters)
+GET {{baseUrl}}/products?page=1&limit=10&category=Dairy
+Authorization: Bearer {{token}}
+
+### Get Product by Barcode (The "Scanner" Test!)
+GET {{baseUrl}}/products/barcode/100200300
+Authorization: Bearer {{token}}
+
+
+### ============================================================================
+### 3. REPORT ENDPOINTS (Requires Token)
+### ============================================================================
+
+### Get Daily Revenue (Will show 0 until we build the Sales logic tomorrow)
+GET {{baseUrl}}/reports/daily-revenue
+Authorization: Bearer {{token}}
+
+### Get Low Stock Products (Will return empty unless quantity < reorderLevel)
+GET {{baseUrl}}/reports/low-stock
+Authorization: Bearer {{token}}

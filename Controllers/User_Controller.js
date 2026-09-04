@@ -1,7 +1,7 @@
 // ===============================================================
-//  User_Controller.js
+//  User_Controller
 //  Handles all authentication and registration for the User Model.
-//  Imported by User_Routes.js and mounted under /api/users.
+//  Imported by Routes and mounted under /api/users.
 // ===============================================================
 
 const User = require('../Models/Users');
@@ -15,10 +15,10 @@ const jwt = require('jsonwebtoken');
 
 exports.CreateUser = async (req, res) => {
   try {
-    // 1. Destructure all expected text fields from the request body
+    // Destructure all expected text fields from the request body
     const { name, email, password, gender, phone_number, age } = req.body;
 
-    // 2. Validate that all mandatory fields are present
+    // Validate that all mandatory fields are present
     // With multipart/form-data, empty text inputs arrive as empty strings ("")
     if (
       !name || 
@@ -32,30 +32,30 @@ exports.CreateUser = async (req, res) => {
       return res.status(400).json({ message: 'Please provide all required fields' });
     }
 
-    // 3. Normalise string data to ensure database consistency
+    // Normalise string data to ensure database consistency
     const normalizedEmail = email.toLowerCase().trim();
     const normalizedPhone = phone_number.trim();
 
-    // 4. Check if a user with the same email already exists 
+    // Check if a user with the same email already exists 
     const existingEmail = await User.findOne({ email: normalizedEmail });
     if (existingEmail) {
       return res.status(409).json({ message: 'This Email already exists' });
     }
 
-    // 5. Check if a user with the same phone number already exists 
+    // Check if a user with the same phone number already exists 
     const existingPhone = await User.findOne({ phone_number: normalizedPhone });
     if (existingPhone) {
       return res.status(409).json({ message: 'This Phone Number already exists' });
     }
 
-    // 6. Handle Profile Avatar (Multer)
+    // Handle Profile Avatar (Multer)
     // If a file was uploaded, build a clean relative path using forward slashes
     // Otherwise, assign a clean default avatar path
     const avatarPath = req.file 
       ? `uploads/${req.file.filename}` 
       : 'uploads/default-avatar.png';
 
-    // 7. Build the new User document
+    // Build the new User document
     // Convert age to a Number to ensure compatibility with multipart/form-data
     const user = new User({
       name: name.trim(),
@@ -67,11 +67,11 @@ exports.CreateUser = async (req, res) => {
       avatar: avatarPath,
     });
 
-    // 8. Persist the new user to MongoDB
+    // Persist the new user to MongoDB
     // Password will be automatically hashed by pre-save hook in Models/Users.js
     await user.save();
 
-    // 9. Return the saved user (excluding password for security)
+    // Return the saved user (excluding password for security)
     return res.status(201).json({
       success: true,
       message: 'User created successfully',
@@ -93,7 +93,6 @@ exports.CreateUser = async (req, res) => {
         message: `This ${field} is already registered. Please use another. Thank You.` 
       });
     }
-
     console.error('Error creating user:', error);
     return res.status(500).json({ message: 'Internal server error', error: error.message });
   }

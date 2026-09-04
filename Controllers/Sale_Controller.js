@@ -1,5 +1,5 @@
 // ===============================================================
-//  Sales_Controller.js
+//  Sales_Controller
 //  Handles the Point of Sale (POS) checkout process.
 //  Uses MongoDB Transactions (ACID properties) to ensure that 
 //  stock deductions and receipt generation happen simultaneously.
@@ -10,35 +10,56 @@ const Product = require('../Models/Products');
 const PM = require('mongoose');
 
 // ==============================================================
-// PROCESS CHECKOUT (POS TRANSACTION)
+// PROCESS CHECKOUT (AKA - POINT OF SALE TRANSACTION)
 // Route  : POST /api/sales/checkout
-// Access : User (Cashier), Store_Keeper, Admin, Super_Admin
+// Access : User (Cashier), Store_Keepers, Admins, Super_Admin
 // ==============================================================
 
 exports.ProcessCheckout = async (req, res) => {
-  // Start a MongoDB session to enable the "all-or-nothing" transaction
+  // Destructure the cart items and payment method from the request body
+  // items format: [{ productId: "...", quantity: 2 }, { productId: "...", quantity: 1 }]
+  const { items, paymentMethod } = req.body;
+
+  // ==============================================================
+  // STEP 1: VALIDATE DATA *BEFORE* STARTING THE TRANSACTION
+  // This prevents Error 6 (Ghost Transactions) by ensuring we don't
+  // lock the database if the user just sent bad data.
+  // ==============================================================
+  
+  if (!items || items.length === 0) {
+    return res.status(400).json({ message: 'Shopping cart cannot be empty' });
+  }
+  if (!paymentMethod) {
+    return res.status(400).json({ message: 'Please select a payment method' });
+  }
+  if (!Array.isArray(items)) {
+    return res.status(400).json({ message: 'Items must be an array' });
+  }
+  
+  for (const item of items) {
+    if (!item.productId || item.quantity === undefined) {
+      return res.status(400).json({ message: 'Each item must have a productId and quantity' });
+    }
+    // Fixes Error 5: Ensure quantity is a valid, positive whole number (No negatives, no decimals)
+    if (!Number.isInteger(item.quantity) || item.quantity <= 0) {
+      return res.status(400).json({ message: 'Item quantity must be a positive whole number greater than zero' });
+    }
+  }
+
+  // ==============================================================
+  // STEP 2: START THE TRANSACTION
+  // Now that data is clean, start the "all-or-nothing" database lock
+  // ==============================================================
+  
   const session = await PM.startSession();
   session.startTransaction();
 
   try {
-    // Destructure the cart items and payment method from the request body
-    // items format: [{ productId: "...", quantity: 2 }, { productId: "...", quantity: 1 }]
-    const { items, paymentMethod } = req.body;
-
-    // Validate the incoming payload
-    if (!items || items.length === 0) {
-      return res.status(400).json({ message: 'Shopping cart cannot be empty' });
-    }
-    if (!paymentMethod) {
-      return res.status(400).json({ message: 'Please select a payment method' });
-    }
-
     let totalAmount = 0;
     const processedItems = [];
 
     // Loop through every item in the shopping cart
     for (const cartItem of items) {
-      
       // Fetch the product from the DB. 
       // We pass the session to lock this document during the transaction.
       const product = await Product.findById(cartItem.productId).session(session);
@@ -110,7 +131,6 @@ exports.ProcessCheckout = async (req, res) => {
     // Stock numbers revert back to normal, and no receipt is created.
     await session.abortTransaction();
     session.endSession();
-
     console.error('Checkout Transaction Error:', error);
     
     // Check if it's our custom thrown error (like out of stock) or a server crash
@@ -125,7 +145,7 @@ exports.ProcessCheckout = async (req, res) => {
 // ==============================================================
 // GET SALES HISTORY
 // Route  : GET /api/sales
-// Access : Admin, Super_Admin (Restricted via role.js)
+// Access : Admins, Super_Admin 
 // ==============================================================
 
 exports.GetSalesHistory = async (req, res) => {

@@ -92,19 +92,25 @@ Fixec all the below Errors and added also some new features
 10. Handled multipart/form-data typecasting in User_Controller.js and Product_Controller.js (converting stringified form numbers/booleans cleanly).
 
 ## 🚀 Progress & Milestones
-- [x] Initialised Git repository and configured VS Code with Git Bash
-- [x] Configured `.gitignore` to exclude `node_modules`, `.env`, and other sensitive files
-- [x] Built and connected MongoDB with Mongoose
-- [x] Expanded User Model with full fields for authentication and role management
-- [x] Expanded Product Model with full fields for inventory tracking (barcode, SKU, cost, reorder level, expiry, etc.)
-- [x] Built User Controller with registration and login logic
-- [x] Built Product Controller with Create, Read, Update, and Soft Delete
-- [x] Built Product Routes with public and admin-protected endpoints
-- [x] Added pagination, search, category filter, and low-stock filter to GetProducts
-- [x] Added ObjectId validation and duplicate key (11000) error handling
-- [x] Update User Routes to match the current User Controller
-- [x] Add authentication token refresh logic
-- [ ] Connect frontend or POS interface to the API
+[x] Initialised Git repository and configured VS Code with Git Bash
+[x] Configured .gitignore to exclude node_modules, .env, and other sensitive files
+[x] Built and connected MongoDB with Mongoose
+[x] Expanded User Model with full fields for authentication and role management
+[x] Expanded Product Model with full fields for inventory tracking (barcode, SKU, cost, reorder level, expiry, etc.)
+[x] Built User Controller with registration and login logic
+[x] Built Product Controller with Create, Read, Update, and Soft Delete
+[x] Built Product Routes with public and admin-protected endpoints
+[x] Added pagination, search, category filter, and low-stock filter to GetProducts
+[x] Added ObjectId validation and duplicate key (11000) error handling
+[x] Update User Routes to match the current User Controller
+[x] Add authentication token refresh logic
+[x] Installed sharp and configured Multer with in-memory storage
+[x] Built Upload.js middleware supporting iPhone HEIC/HEIF photos and automatic WebP conversion (85% quality)
+[x] Integrated upload.single('image') and processImage into Product Create and Update routes
+[ ] Configure express.static in app.js to serve saved .webp images to clients via URL
+[ ] Add automated input validation/sanitization (e.g., Zod or Mongoose setters) to clean request bodies before saving
+[ ] Add file cleanup logic (fs.unlink) to delete old .webp images from disk when a product is updated or deleted[ ] Test end-to-end product uploads using various image formats (including iPhone .heic and large PNGs)
+[ ] Connect frontend or POS interface to the API
 
 ## System Architecture & File 
 StructurePlaintextPractices/

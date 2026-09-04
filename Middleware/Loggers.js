@@ -1,5 +1,5 @@
 // ===============================================================
-//  logger.js (Middleware)
+//  Logger (Middleware)
 //  Automatically tracks and records sensitive system actions.
 //  Intercepts requests, sanitizes the data, and writes to AuditLog.
 // ===============================================================
@@ -11,27 +11,27 @@ const AuditLog = require('../Models/AuditLog');
 // ==============================================================
 
 exports.systemLogger = (req, res, next) => {
-  // 1. We ONLY want to log actions that change data (Mutations).
+  // We ONLY want to log actions that change data (Mutations).
   // We ignore GET requests so we don't flood the database every time 
   // a customer just looks at a product list.
   if (req.method === 'GET') {
     return next();
   }
 
-  // 2. We hook into the 'finish' event of the response.
+  // We hook into the 'finish' event of the response.
   // This means the controller has finished its job, and we now know 
   // if it was successful (200/201) or if it failed/was denied (400/403/500).
   res.on('finish', async () => {
     try {
-      // 3. Security: Sanitize the payload so we NEVER log user passwords in plain text!
+      // Security: Sanitize the payload so we NEVER log user passwords in plain text!
       const safeBody = { ...req.body };
       if (safeBody.password) {
         safeBody.password = '[REDACTED FOR SECURITY]';
       }
 
-      // 4. Construct the log entry
+      // Construct the log entry
       const logEntry = {
-        // If auth.js ran successfully, req.user will exist
+        // If authenticated successfully, user will exist
         userId: req.user ? req.user.id : null,
         userRole: req.user ? req.user.role : 'Guest/Unauthenticated',
         
@@ -42,7 +42,7 @@ exports.systemLogger = (req, res, next) => {
         statusCode: res.statusCode, // Was it a success or an error?
       };
 
-      // 5. Save the log to the database silently in the background
+      // Save the log to the database silently in the background
       await AuditLog.create(logEntry);
 
     } catch (error) {
@@ -52,7 +52,7 @@ exports.systemLogger = (req, res, next) => {
     }
   });
 
-  // 6. Instantly pass control to the actual controller. 
+  // Instantly pass control to the actual controller. 
   // The 'finish' event above will trigger completely independently later.
   next();
 };

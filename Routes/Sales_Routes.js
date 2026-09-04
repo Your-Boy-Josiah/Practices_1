@@ -1,5 +1,5 @@
 // ===============================================================
-//  Sales_Routes.js
+//  Sales_Routes
 //  Defines all HTTP routes for Point of Sale transactions.
 // ===============================================================
 

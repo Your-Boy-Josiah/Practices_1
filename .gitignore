@@ -4,6 +4,7 @@
 # ============================================================
 
 # # Dependencies
+
 # node_modules/
 
 # # Environment variables & secrets (CRITICAL: never commit API keys or passwords)
@@ -119,3 +120,14 @@ Desktop.ini
 # Runtime process ID files
 *.pid
 *.pid.lock 
+
+# Uploaded Files
+uploads/
+
+# Logs
+npm-debug.log*
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db

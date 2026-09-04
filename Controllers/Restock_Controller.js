@@ -1,9 +1,9 @@
 // ===============================================================
-//  Restock_Controller.js
+//  Restock_Controller
 //  Handles the processing of incoming deliveries.
 //  Uses MongoDB Transactions to securely log the delivery and 
-//  increase the store's inventory quantity simultaneously.
-// ===============================================================
+//  increases the store's inventory quantity simultaneously. (if needed)
+// ======================================================================
 
 const Restock = require('../Models/Restock');
 const Product = require('../Models/Products');
@@ -13,7 +13,7 @@ const PM = require('mongoose');
 // ==============================================================
 // PROCESS INCOMING DELIVERY (RESTOCK)
 // Route  : POST /api/restock
-// Access : Store_Keeper, Admin, Super_Admin
+// Access : Store_Keepers, Admins, Super_Admin
 // ==============================================================
 
 exports.ProcessRestock = async (req, res) => {
@@ -38,19 +38,19 @@ exports.ProcessRestock = async (req, res) => {
       return res.status(400).json({ message: 'Please provide productId, supplierId, quantityAdded, and unitCost' });
     }
 
-    // Step 1: Verify the Supplier exists
+    // Verify the Supplier exists
     const supplier = await Supplier.findById(supplierId).session(session);
     if (!supplier || !supplier.isActive) {
       throw new Error('Supplier not found or is currently inactive');
     }
 
-    // Step 2: Verify the Product exists
+    // Verify the Product exists
     const product = await Product.findById(productId).session(session);
     if (!product || !product.isActive) {
       throw new Error('Product not found or is currently inactive');
     }
 
-    // Step 3: Update the Product Inventory
+    // Update the Product Inventory
     // We add the newly delivered boxes to the existing stock
     product.quantity += Number(quantityAdded);
     
@@ -65,13 +65,13 @@ exports.ProcessRestock = async (req, res) => {
     // Save the updated product data
     await product.save({ session });
 
-    // Step 4: Generate a unique Delivery Number (e.g., DEL-20260903-789012)
+    // Generate a unique Delivery Number (e.g., DEL-20260903-789012)
     const datePrefix = new Date().toISOString().split('T')[0].replace(/-/g, '');
     const randomSuffix = Math.floor(100000 + Math.random() * 900000); 
     const deliveryNumber = `DEL-${datePrefix}-${randomSuffix}`;
 
-    // Step 5: Create the Restock Ledger Entry
-    // We get the staff member's ID from req.user (injected by auth.js)
+    // Create the Restock Ledger Entry
+    // We get the staff member's ID from req.user authentication middleware
     const newRestock = new Restock({
       deliveryNumber,
       productId,
@@ -86,7 +86,7 @@ exports.ProcessRestock = async (req, res) => {
 
     const savedRestock = await newRestock.save({ session });
 
-    // Step 6: Commit the Transaction (Success!)
+    // Store the Transaction (if successful) and commit all changes to the database
     await session.commitTransaction();
     session.endSession();
 
@@ -99,7 +99,6 @@ exports.ProcessRestock = async (req, res) => {
     // Abort and rollback all changes if anything fails
     await session.abortTransaction();
     session.endSession();
-
     console.error('Restock Transaction Error:', error);
 
     // Differentiate between our custom validation errors and server crashes
@@ -114,7 +113,7 @@ exports.ProcessRestock = async (req, res) => {
 // ==============================================================
 // GET RESTOCK HISTORY (THE LEDGER)
 // Route  : GET /api/restock
-// Access : Admin, Super_Admin
+// Access : Admins, Super_Admin
 // ==============================================================
 
 exports.GetRestockHistory = async (req, res) => {

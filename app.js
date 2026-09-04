@@ -1,17 +1,16 @@
 // ===============================================================
-//  app.js (Main Server Entry Point)
+//  app (Main Server Entry Point)
 //  Initializes Express, connects to MongoDB, mounts all global 
 //  middlewares, and registers the API route handlers.
 // ===============================================================
 
 const express = require('express');
+const path = require('path');
 const cors = require('cors'); 
 const helmet = require('helmet'); // Security Headers
 const rateLimit = require('express-rate-limit'); // Brute-force protection
 const mongoSanitize = require('express-mongo-sanitize'); // NoSQL Injection protection
-const path = require('path');
 require('dotenv').config(); 
-
 const connectDB = require('./Config/Database_Config');
 
 // Import Routers
@@ -31,10 +30,10 @@ const app = express();
 // GLOBAL SECURITY & MIDDLEWARE
 // ==============================================================
 
-// 1. Helmet: Secures HTTP headers and allows cross-origin resource loading for static assets
+// Helmet: Secures HTTP headers and allows cross-origin resource loading for static assets
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 
-// 2. Rate Limiting: Max 100 requests per 15 minutes per IP address
+// Rate Limiting: Max 100 requests per 15 minutes per IP address
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, 
   max: 100, 
@@ -42,14 +41,25 @@ const limiter = rateLimit({
 });
 app.use('/api', limiter); // Apply to all /api routes
 
-// 3. CORS: Allows frontend connections
-app.use(cors()); 
+// ============================================================
+// CORS SECURITY
+// Restricts API access so only your approved frontends can talk to it
+// ============================================================
+const corsOptions = {
+  // Add the URL of your frontend / POS system here. 
+  // (We use localhost:3000 as a placeholder for React/Next.js)
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'], 
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true, 
+};
+// CORS: Allows frontend connections
+app.use(cors(corsOptions));
 
-// 4. Body Parsers
+// Body Parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 5. Data Sanitization: Mutates inputs in place to prevent NoSQL injection
+// Data Sanitization: Mutates inputs in place to prevent NoSQL injection
 // Avoids overwriting req.query directly, which throws an error on read-only getters
 app.use((req, res, next) => {
   if (req.body) mongoSanitize.sanitize(req.body);
@@ -58,10 +68,10 @@ app.use((req, res, next) => {
   next();
 });
 
-// 6. System Logger (CCTV)
+// System Logger (WARN: Must be mounted before the routes to log all requests)
 app.use(systemLogger);
 
-// 7. Serve uploaded files statically so they can be viewed via URL
+// Serve uploaded files statically so they can be viewed via URL
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ==============================================================

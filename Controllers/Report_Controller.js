@@ -1,5 +1,5 @@
 // ===============================================================
-//  Report_Controller.js
+//  Report_Controller
 //  Handles the generation of analytics and business intelligence.
 //  Provides Admins with real-time data on sales revenue, 
 //  depleted inventory, and expiring perishable goods.
@@ -11,19 +11,19 @@ const Sales = require('../Models/Sale');
 // ==============================================================
 // GET TODAY'S REVENUE SUMMARY
 // Route  : GET /api/reports/daily-revenue
-// Access : Admin, Super_Admin
+// Access : Admins, Super_Admin
 // ==============================================================
 
 exports.GetDailyRevenue = async (req, res) => {
   try {
-    // 1. Calculate the start and end time of TODAY
+    // Calculate the start and end time of TODAY
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 
     const endOfDay = new Date();
     endOfDay.setHours(23, 59, 59, 999);
 
-    // 2. Use MongoDB Aggregation to calculate the total instantly
+    // Use MongoDB Aggregation to calculate the total instantly
     // We tell the database: "Find all sales from today, and add up their totalAmount"
     const revenueStats = await Sales.aggregate([
       {
@@ -40,7 +40,7 @@ exports.GetDailyRevenue = async (req, res) => {
       }
     ]);
 
-    // 3. Format the response
+    // Format the response
     const stats = revenueStats.length > 0 ? revenueStats[0] : { totalRevenue: 0, totalTransactions: 0 };
 
     return res.status(200).json({
@@ -61,20 +61,19 @@ exports.GetDailyRevenue = async (req, res) => {
 // ==============================================================
 // GET LOW STOCK ALERTS
 // Route  : GET /api/reports/low-stock
-// Access : Store_Keeper, Admin, Super_Admin
+// Access : Store_Keepers, Admins, Super_Admin
 // ==============================================================
 
 exports.GetLowStockProducts = async (req, res) => {
   try {
-    // Query the database for active products where the current quantity 
-    // is less than or equal to the designated reorder level.
+    // Query the database for active products where the current quantity is less than or equal to the designated reorderlevel.
     // We use $expr so MongoDB can compare two fields within the same document.
     const lowStockItems = await Product.find({
       isActive: true,
       $expr: { $lte: ['$quantity', '$reorderLevel'] }
     })
     .select('name barcode quantity reorderLevel category') // Only pull what the dashboard needs
-    .sort({ quantity: 1 }); // Sort ascending (items with 0 stock appear first!)
+    .sort({ quantity: 1 }); // Sort ascending (items with 0 stock appear first)
 
     return res.status(200).json({
       success: true,
@@ -89,20 +88,20 @@ exports.GetLowStockProducts = async (req, res) => {
 };
 
 // ==============================================================
-// GET EXPIRING PRODUCTS (Next 7 Days)
+// GET EXPIRING PRODUCTS (One that will expire in the Next 7 Days)
 // Route  : GET /api/reports/expiring-soon
-// Access : Store_Keeper, Admin, Super_Admin
+// Access : Store_Keepers, Admins, Super_Admin
 // ==============================================================
 
 exports.GetExpiringProducts = async (req, res) => {
   try {
-    // 1. Define the timeframe: From Right Now until 7 Days from now
+    // Define the timeframe: From Right Now until 7 Days from now
     const today = new Date();
     
     const nextWeek = new Date();
     nextWeek.setDate(today.getDate() + 7);
 
-    // 2. Query for perishable items whose expiryDate falls in this 7-day window
+    // Query for perishable items whose expiryDate falls in this 7-day window
     const expiringItems = await Product.find({
       isActive: true,
       isPerishable: true,

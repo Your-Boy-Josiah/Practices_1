@@ -1,7 +1,7 @@
 // ===============================================================
-//  error.js (Middleware)
+//  Error Handler (Middleware)
 //  Global Error Handler. Catches all unhandled exceptions and 
-//  prevents the Node.js server from crashing.
+//  prevents the server from crashing.
 // ===============================================================
 
 exports.errorHandler = (err, req, res, next) => {
@@ -14,7 +14,7 @@ exports.errorHandler = (err, req, res, next) => {
     success: false,
     message: err.message || 'An unexpected error occurred on the server.',
     // Security: Only show the detailed stack trace if we are in "development" mode.
-    // Hackers can use stack traces to understand your folder structure!
+    // Hackers can use stack traces to understand your folder structure and find vulnerabilities.
     stack: process.env.NODE_ENV === 'production' ? null : err.stack,
   });
 };

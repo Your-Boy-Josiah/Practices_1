@@ -1,13 +1,13 @@
 // ===============================================================
-//  Restock_Routes.js
+//  Restock_Routes
 //  Handles routing for inventory deliveries.
 // ===============================================================
 
 const express = require('express');
 const router = express.Router();
 const RestockController = require('../Controllers/Restock_Controller');
-const { verifyToken } = require('../Middleware/auth');
-const { authorizeRoles } = require('../Middleware/role');
+const { verifyToken } = require('../Middleware/Auth');
+const { authorizeRoles } = require('../Middleware/Role');
 
 // ============================================================
 // PROCESS RESTOCK

@@ -1,5 +1,5 @@
 // ============================================================
-//  Product_Routes.js
+//  Product_Routes
 //  Defines all HTTP routes for the Product resource.
 //  Imported by app.js and mounted under /api/products.
 // ============================================================
@@ -14,8 +14,8 @@ const ProductController = require('../Controllers/Product_Controller');
 const { verifyToken } = require('../Middleware/auth');
 const { authorizeRoles } = require('../Middleware/role');
 
-// Import Multer Upload Middleware
-const upload = require('../Middleware/Upload');
+// Import Multer Upload & Image Processing Middlewares
+const { upload, processImage } = require('../Middleware/Upload');
 
 // ============================================================
 // GET ALL PRODUCTS  (Pagination + Search + Filters)
@@ -39,6 +39,7 @@ router.post(
   verifyToken, 
   authorizeRoles('Store_Keeper', 'Admin', 'Super_Admin'), 
   upload.single('image'), 
+  processImage,
   ProductController.CreateProduct
 );
 
@@ -52,6 +53,7 @@ router.put(
   verifyToken, 
   authorizeRoles('Store_Keeper', 'Admin', 'Super_Admin'), 
   upload.single('image'), 
+  processImage,
   ProductController.UpdateProduct
 );
 

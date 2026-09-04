@@ -1,5 +1,5 @@
 // ===============================================================
-//  User_Routes.js
+//  User_Routes
 //  Handles all routing for User-related API endpoints.
 //  Mounted under /api/users in app.js.
 // ===============================================================
@@ -11,7 +11,7 @@ const router = express.Router();
 const UserController = require('../Controllers/User_Controller');
 
 // Import Multer Upload Middleware
-const upload = require('../Middleware/Upload');
+const { upload } = require('../Middleware/Upload');
 
 // ============================================================
 // REGISTER A NEW USER
