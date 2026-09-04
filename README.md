@@ -91,6 +91,15 @@ Fixec all the below Errors and added also some new features
 
 10. Handled multipart/form-data typecasting in User_Controller.js and Product_Controller.js (converting stringified form numbers/booleans cleanly).
 
+##  Did Multiple commits it will be taking has one 
+
+1. First commit was to clean up my codebase and Re-Enforce the security of my system to ensure my .gitnore is working and all important files that needed to be kept private are kept
+
+2. This was me checking my README.md files and seeing that it is not formated wwell because on Github web page it looks complete unpleasant an I did not like that 
+
+3. After doing the above commit in 2 I realized that that was  not the only hing that needed cleanup and i used this last commit to even write this commit 
+NOTE: their will be others after this because i need to do other things like for example you can not see it not but in the future i have empty folders Services and Utility. 
+
 ## 🚀 Progress & Milestones
 
 [x] Initialised Git repository and configured VS Code with Git Bash
@@ -133,38 +142,71 @@ Fixec all the below Errors and added also some new features
 
 
 ## System Architecture & File 
+
 StructurePlaintextPractices/
+|
 ├── Config/
+│ 
 │   └── Database_Config.js        # MongoDB Mongoose connection
+│ 
 ├── Controllers/
+│   │ 
 │   ├── User_Controller.js        # Registration, authentication, avatar handling
+│   │ 
 │   ├── Product_Controller.js     # Inventory CRUD, barcode scanning, image upload
+│   │ 
 │   ├── Sales_Controller.js       # POS checkout transactions (ACID session)
+│   │ 
 │   ├── Restock_Controller.js     # Supplier restocking transactions (ACID session)
+│   │ 
 │   └── Report_Controller.js      # Revenue, low stock, expiring goods analytics
+│ 
 ├── Middleware/
+|   |
 │   ├── auth.js                   # JWT verification & req.user attachment
+|   |
 │   ├── role.js                   # Role-Based Access Control (RBAC) bouncer
+|   |
 │   ├── upload.js                 # Multer disk storage, MIME filters (5MB cap)
+|   |
 │   ├── Loggers.js                # System audit trail logging
+|   |
 │   └── Errors.js                 # Global centralized error handler
+|
 ├── Models/
+|   |
 │   ├── Users.js                  # User schema, bcrypt hashing pre-save, roles
+|   |
 │   ├── Products.js               # Product catalog, barcodes, stock levels, images
+|   |
 │   ├── Supplier.js               # Vendor details
+|   |
 │   ├── Sales.js                  # Completed POS transaction ledger
+|   |
 │   ├── Restock.js                # Inventory receiving records
+|   |
 │   └── AuditLog.js               # Mutation audit trail
+|
 ├── Routes/
+|   |
 │   ├── User_Routes.js            # /api/users
+|   |
 │   ├── Product_Routes.js         # /api/products
+|   |
 │   ├── Sales_Routes.js           # /api/sales
+|   |
 │   ├── Restock_Routes.js         # /api/restock
+|   |
 │   └── Report_Routes.js          # /api/reports
-├── uploads/                      # Static storage directory for user avatars & product media
-├── .env                          # Environment secrets (PORT, MONGO_URI, JWT_SECRET)
-├── app.js                        # Express server entry point & security middlewares
-└── package.json                  # Dependencies & start scripts
+|
+├── uploads/  -                   # Static storage directory for user avatars & product media
+|
+├── .env  -                       # Environment secrets (PORT, MONGO_URI, JWT_SECRET)
+|
+├── app.js  -                     # Express server entry point & security middlewares
+|
+└── package.json  -               # Dependencies & start scripts
+
 
 ## 🛠️ Key Commands & Workflow Reference
 ### Managing Files
