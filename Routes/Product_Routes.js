@@ -1,72 +1,49 @@
-// ============================================================
-//  Product_Routes
-//  Defines all HTTP routes for the Product resource.
-//  Imported by app.js and mounted under /api/products.
-// ============================================================
-
 const express = require('express');
 const router = express.Router();
 
-// Import Controller
 const ProductController = require('../Controllers/Product_Controller');
-
-// Import Security Middlewares
-const { verifyToken } = require('../Middleware/auth');
-const { authorizeRoles } = require('../Middleware/role');
-
-// Import Multer Upload & Image Processing Middlewares
+const { verifyToken } = require('../Middleware/Auth');
+const { authorizeRoles } = require('../Middleware/Role');
 const { upload, processImage } = require('../Middleware/Upload');
+const { validateBody, validateQuery, validateParams } = require('../Middleware/Validation');
+const {
+  productsQuerySchema,
+  barcodeParamSchema,
+  productIdParamSchema,
+  createProductSchema,
+  updateProductSchema,
+} = require('../Utililty/ValidationSchemas');
 
-// ============================================================
-// GET ALL PRODUCTS  (Pagination + Search + Filters)
-// Access : Any logged-in staff
-// ============================================================
-router.get('/', verifyToken, ProductController.GetProducts);
+router.get('/', verifyToken, validateQuery(productsQuerySchema), ProductController.GetProducts);
+router.get('/barcode/:barcode', verifyToken, validateParams(barcodeParamSchema), ProductController.GetProductByBarcode);
 
-// ============================================================
-// GET PRODUCT BY BARCODE  (POS Scanner Lookup)
-// Access : Any logged-in staff
-// ============================================================
-router.get('/barcode/:barcode', verifyToken, ProductController.GetProductByBarcode);
-
-// ============================================================
-// CREATE A NEW PRODUCT
-// Access : Store_Keeper, Admin, Super_Admin
-// Payload: multipart/form-data with optional 'image' file
-// ============================================================
 router.post(
-  '/CreateProduct', 
-  verifyToken, 
-  authorizeRoles('Store_Keeper', 'Admin', 'Super_Admin'), 
-  upload.single('image'), 
+  '/CreateProduct',
+  verifyToken,
+  authorizeRoles('Store_Keeper', 'Admin', 'Super_Admin'),
+  upload.single('image'),
   processImage,
+  validateBody(createProductSchema),
   ProductController.CreateProduct
 );
 
-// ============================================================
-// UPDATE A PRODUCT
-// Access : Store_Keeper, Admin, Super_Admin
-// Payload: multipart/form-data or application/json with optional 'image' file
-// ============================================================
 router.put(
-  '/:id', 
-  verifyToken, 
-  authorizeRoles('Store_Keeper', 'Admin', 'Super_Admin'), 
-  upload.single('image'), 
+  '/:id',
+  verifyToken,
+  authorizeRoles('Store_Keeper', 'Admin', 'Super_Admin'),
+  validateParams(productIdParamSchema),
+  upload.single('image'),
   processImage,
+  validateBody(updateProductSchema),
   ProductController.UpdateProduct
 );
 
-// ============================================================
-// SOFT DELETE A PRODUCT  (Archive / Deactivate)
-// Access : Management Only (Admin, Super_Admin)
-// ============================================================
 router.delete(
-  '/:id', 
-  verifyToken,  
-  authorizeRoles('Admin', 'Super_Admin'), 
+  '/:id',
+  verifyToken,
+  authorizeRoles('Admin', 'Super_Admin'),
+  validateParams(productIdParamSchema),
   ProductController.DeleteProduct
 );
 
-// Export the router to be mounted in app.js
 module.exports = router;

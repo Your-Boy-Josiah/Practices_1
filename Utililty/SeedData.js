@@ -24,7 +24,7 @@ const seedDatabase = async () => {
 
     // 3. Create Dummy Users
     // (Assuming your User model hashes passwords automatically before saving)
-    const users = await User.create([
+    await User.create([
       {
         name: 'John SuperAdmin',
         email: 'superadmin@store.com',

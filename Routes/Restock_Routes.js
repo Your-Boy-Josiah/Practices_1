@@ -1,31 +1,24 @@
-// ===============================================================
-//  Restock_Routes
-//  Handles routing for inventory deliveries.
-// ===============================================================
-
 const express = require('express');
 const router = express.Router();
 const RestockController = require('../Controllers/Restock_Controller');
 const { verifyToken } = require('../Middleware/Auth');
 const { authorizeRoles } = require('../Middleware/Role');
+const { validateBody, validateQuery } = require('../Middleware/Validation');
+const { restockSchema, paginationQuerySchema } = require('../Utililty/ValidationSchemas');
 
-// ============================================================
-// PROCESS RESTOCK
-// Only staff that manage inventory can log new truck deliveries
-// ============================================================
-router.post('/', 
-  verifyToken, 
-  authorizeRoles('Store_Keeper', 'Admin', 'Super_Admin'), 
+router.post(
+  '/',
+  verifyToken,
+  authorizeRoles('Store_Keeper', 'Admin', 'Super_Admin'),
+  validateBody(restockSchema),
   RestockController.ProcessRestock
 );
 
-// ============================================================
-// VIEW RESTOCK HISTORY
-// Only management can view the historical delivery ledger
-// ============================================================
-router.get('/', 
-  verifyToken, 
-  authorizeRoles('Admin', 'Super_Admin'), 
+router.get(
+  '/',
+  verifyToken,
+  authorizeRoles('Admin', 'Super_Admin'),
+  validateQuery(paginationQuerySchema),
   RestockController.GetRestockHistory
 );
 

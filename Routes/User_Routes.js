@@ -1,36 +1,17 @@
-// ===============================================================
-//  User_Routes
-//  Handles all routing for User-related API endpoints.
-//  Mounted under /api/users in app.js.
-// ===============================================================
-
 const express = require('express');
-const router = express.Router(); 
+const router = express.Router();
 
-// Import Controller
 const UserController = require('../Controllers/User_Controller');
-
-// Import Multer Upload Middleware
 const { upload } = require('../Middleware/Upload');
+const { validateBody } = require('../Middleware/Validation');
+const {
+  userCreateSchema,
+  userLoginSchema,
+  refreshTokenSchema,
+} = require('../Utililty/ValidationSchemas');
 
-// ============================================================
-// REGISTER A NEW USER
-// Route  : POST /api/users/CreateUser
-// Access : Public
-// Payload: multipart/form-data (name, email, password, gender, phone_number, age, avatar [file])
-// ============================================================
-router.post(
-  '/CreateUser', 
-  upload.single('avatar'), 
-  UserController.CreateUser
-);
-
-// ============================================================
-// LOGIN USER
-// Route  : POST /api/users/LoginUser
-// Access : Public
-// Payload: application/json (email, password)
-// ============================================================
-router.post('/LoginUser', UserController.LoginUser);
+router.post('/CreateUser', upload.single('avatar'), validateBody(userCreateSchema), UserController.CreateUser);
+router.post('/LoginUser', validateBody(userLoginSchema), UserController.LoginUser);
+router.post('/RefreshToken', validateBody(refreshTokenSchema), UserController.RefreshToken);
 
 module.exports = router;

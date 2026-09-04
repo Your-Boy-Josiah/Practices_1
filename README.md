@@ -167,3 +167,79 @@ If the database fails to connect in the config, use process.exit(1) to kill the 
 MongoDB requires a Replica Set to be configured and initialized (rs.initiate()) before it allows ACID transactions and sessions.
 
 Never commit .rest testing files to GitHub if they contain live JWT authentication tokens. Always add them to .gitignore.
+## ✅ Production Hardening Upgrades Implemented
+
+### Automated Testing
+- Added **unit tests** for `Auth` and `Role` middleware.
+- Added **integration tests** for all route groups:
+  - Users (`/api/users`)
+  - Products (`/api/products`)
+  - Sales (`/api/sales`)
+  - Restock (`/api/restock`)
+  - Reports (`/api/reports`)
+  - Health (`/health`)
+- Added transaction behavior checks for sales rollback when stock is insufficient.
+
+### Request-Level Validation
+- Added centralized request validation using **Zod**.
+- Enforced validation for body/query/params with consistent error responses:
+  - `success: false`
+  - `message: "Validation failed"`
+  - `errors: [...]`
+
+### Import Casing Standardization
+- Standardized route imports for middleware file casing (`Auth`, `Role`, `Upload`).
+- Added `scripts/check-import-casing.js` and wired it into `npm run lint`.
+
+### Security and API Hardening
+- Added refresh token endpoint: `POST /api/users/RefreshToken`.
+- Added request-id tagging for traceability.
+- Expanded audit redaction for password/token fields.
+- Added environment-based CORS origin parsing via `CORS_ORIGINS`.
+
+### Observability
+- Added `/health` endpoint.
+- Added structured request logs with:
+  - requestId
+  - method
+  - endpoint
+  - statusCode
+  - durationMs
+  - ipAddress
+
+### CI/CD Quality Gates
+- Added GitHub Actions workflow: `.github/workflows/ci.yml`
+- Pipeline gates:
+  - Lint (including import-casing checks)
+  - Test + Coverage
+  - Dependency audit (`npm audit --audit-level=moderate`)
+
+## 🧪 New Commands
+
+```bash
+# Start server
+npm run dev
+
+# Lint + import casing check
+npm run lint
+
+# Run tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run all local quality gates
+npm run ci
+```
+
+## 🔐 Environment Variables
+
+```env
+PORT=5000
+MONGO_URI=mongodb://...
+JWT_SECRET=your-access-token-secret
+REFRESH_JWT_SECRET=your-refresh-token-secret
+CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+NODE_ENV=development
+```
