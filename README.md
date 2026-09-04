@@ -44,6 +44,7 @@
 
 ## 🚀 Progress & Milestones
 
+```
 [x] Initialised Git repository and configured VS Code with Git Bash
 [x] Configured .gitignore to exclude node_modules, .env, and other sensitive files
 [x] Built and connected MongoDB with Mongoose
