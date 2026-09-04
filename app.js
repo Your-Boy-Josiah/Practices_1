@@ -45,6 +45,7 @@ app.use('/api', limiter); // Apply to all /api routes
 // CORS SECURITY
 // Restricts API access so only your approved frontends can talk to it
 // ============================================================
+
 const corsOptions = {
   // Add the URL of your frontend / POS system here. 
   // (We use localhost:3000 as a placeholder for React/Next.js)

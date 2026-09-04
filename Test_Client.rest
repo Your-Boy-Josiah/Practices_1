@@ -1,80 +1,133 @@
-### ============================================================================
-### SUPERMARKET API TEST SUITE
-### Requires VS Code "REST Client" Extension
-### Click "Send Request" above any endpoint to execute it.
-### ============================================================================
-
+### VARIABLES (Change the token here after you log in!)
 @baseUrl = http://localhost:3000/api
-# Paste your token here after logging in!
-@token = YOUR_JWT_TOKEN_HERE 
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhOTliMTQzYmEzYjhhNTQ3MGQ4MWNkMSIsImVtYWlsIjoiYWRtaW5Ac3RvcmUuY29tIiwicm9sZSI6IlN1cGVyX0FkbWluIiwiaWF0IjoxNzg4NTIwNzcxLCJleHAiOjE3ODg1MjQzNzF9.vVwIerQ2UQl7wEVt4emhzBMqEUZdEeEs_wt5bYBgNp
 
-### ============================================================================
-### 1. USER ENDPOINTS
-### ============================================================================
-
-### Register a new User
-POST {{baseUrl}}/users/CreateUser
-Content-Type: application/json
-
-{
-  "name": "Josiah Tester",
-  "email": "test@store.com",
-  "password": "Password123!",
-  "gender": "Male",
-  "phone_number": "08011223344",
-  "age": 28
-}
-
-### Login User (Copy the token from the response and paste it in @token above)
+// ============================================================
+// 1. AUTHENTICATION (Run this first to get your token)
+// ============================================================
+### Login as Super Admin
 POST {{baseUrl}}/users/LoginUser
 Content-Type: application/json
 
 {
+  "name": "John SuperAdmin",
   "email": "admin@store.com",
-  "password": "AdminPass123!"
+  "password": "AdminPass123!",
+  "role": "Super_Admin",
+  "phone": "08012345678"
 }
 
-
-### ============================================================================
-### 2. PRODUCT ENDPOINTS (Requires Token)
-### ============================================================================
-
-### Create a New Product
-POST {{baseUrl}}/products/CreateProduct
-Content-Type: application/json
+// ============================================================
+// 2. PRODUCTS
+// ============================================================
+### Get All Products
+GET {{baseUrl}}/products
 Authorization: Bearer {{token}}
+
+### Get a Product by Barcode (POS Scanner)
+GET {{baseUrl}}/products/barcode/123456789012
+Authorization: Bearer {{token}}
+
+
+// ============================================================
+// 3. SALES / CHECKOUT
+// ============================================================
+### Get Sales History
+GET {{baseUrl}}/sales
+Authorization: Bearer {{token}}
+
+### Process a Checkout (JSON Payload)
+POST {{baseUrl}}/sales/checkout
+Authorization: Bearer {{token}}
+Content-Type: application/json
 
 {
-  "name": "Peak Milk Powder 400g",
-  "barcode": "100200300",
-  "sku": "DAIRY-PEAK-400",
-  "category": "Dairy",
-  "costPrice": 1200,
-  "sellingPrice": 1500,
-  "quantity": 50,
-  "unit": "tin",
-  "reorderLevel": 10,
-  "isPerishable": true,
-  "description": "Full cream milk powder"
+  "paymentMethod": "Cash",
+  "items": [
+    {
+      "productId": "paste_a_valid_product_id_here",
+      "quantity": 2
+    }
+  ]
 }
 
-### Get All Products (Test pagination and filters)
-GET {{baseUrl}}/products?page=1&limit=10&category=Dairy
-Authorization: Bearer {{token}}
+# ### ============================================================================
+# ### SUPERMARKET API TEST SUITE
+# ### Requires VS Code "REST Client" Extension
+# ### Click "Send Request" above any endpoint to execute it.
+# ### ============================================================================
 
-### Get Product by Barcode (The "Scanner" Test!)
-GET {{baseUrl}}/products/barcode/100200300
-Authorization: Bearer {{token}}
+# @baseUrl = http://localhost:3000/api
+# # Paste your token here after logging in!
+# @token = YOUR_JWT_TOKEN_HERE 
+
+# ### ============================================================================
+# ### 1. USER ENDPOINTS
+# ### ============================================================================
+
+# ### Register a new User
+# POST {{baseUrl}}/users/CreateUser
+# Content-Type: application/json
+
+# {
+#   "name": "Josiah Tester",
+#   "email": "test@store.com",
+#   "password": "Password123!",
+#   "gender": "Male",
+#   "phone_number": "08011223344",
+#   "age": 28
+# }
+
+# ### Login User (Copy the token from the response and paste it in @token above)
+# POST {{baseUrl}}/users/LoginUser
+# Content-Type: application/json
+
+# {
+#   "email": "admin@store.com",
+#   "password": "AdminPass123!"
+# }
 
 
-### ============================================================================
-### 3. REPORT ENDPOINTS (Requires Token)
-### ============================================================================
+# ### ============================================================================
+# ### 2. PRODUCT ENDPOINTS (Requires Token)
+# ### ============================================================================
 
-### Get Daily Revenue (Will show 0 until we build the Sales logic tomorrow)
-GET {{baseUrl}}/reports/daily-revenue
-Authorization: Bearer {{token}}
+# ### Create a New Product
+# POST {{baseUrl}}/products/CreateProduct
+# Content-Type: application/json
+# Authorization: Bearer {{token}}
 
-### Get Low Stock Products (Will return empty unless quantity < reorderLevel)
-GET {{baseUrl}}/reports/low-stock
-Authorization: Bearer {{token}}
+# {
+#   "name": "Peak Milk Powder 400g",
+#   "barcode": "100200300",
+#   "sku": "DAIRY-PEAK-400",
+#   "category": "Dairy",
+#   "costPrice": 1200,
+#   "sellingPrice": 1500,
+#   "quantity": 50,
+#   "unit": "tin",
+#   "reorderLevel": 10,
+#   "isPerishable": true,
+#   "description": "Full cream milk powder"
+# }
+
+# ### Get All Products (Test pagination and filters)
+# GET {{baseUrl}}/products?page=1&limit=10&category=Dairy
+# Authorization: Bearer {{token}}
+
+# ### Get Product by Barcode (The "Scanner" Test!)
+# GET {{baseUrl}}/products/barcode/100200300
+# Authorization: Bearer {{token}}
+
+
+# ### ============================================================================
+# ### 3. REPORT ENDPOINTS (Requires Token)
+# ### ============================================================================
+
+# ### Get Daily Revenue (Will show 0 until we build the Sales logic tomorrow)
+# GET {{baseUrl}}/reports/daily-revenue
+# Authorization: Bearer {{token}}
+
+# ### Get Low Stock Products (Will return empty unless quantity < reorderLevel)
+# GET {{baseUrl}}/reports/low-stock
+# Authorization: Bearer {{token}}
